@@ -10,7 +10,7 @@ import {
 
 export const promiseSeries = (props: SeriesProps) => {
   const config: SeriesConfig = {
-    useLogging: true,
+    useLogging: false,
     useLogger: null,
   };
 
@@ -93,7 +93,6 @@ export const promiseSeries = (props: SeriesProps) => {
 
       state.tasks = results.tasks;
       state.taskCount = results.keys.length;
-      console.log('TEST', results);
     },
     parseEventHandlers: () => {
       events.onStateChange =

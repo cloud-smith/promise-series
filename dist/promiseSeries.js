@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.promiseSeries = void 0;
 const promiseSeries = (props) => {
     const config = {
-        useLogging: true,
+        useLogging: false,
         useLogger: null,
     };
     let state = {
@@ -82,7 +82,6 @@ const promiseSeries = (props) => {
                 parseNamedArraySeries();
             state.tasks = results.tasks;
             state.taskCount = results.keys.length;
-            console.log('TEST', results);
         },
         parseEventHandlers: () => {
             events.onStateChange =

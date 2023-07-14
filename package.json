@@ -1,6 +1,6 @@
 {
-  "name": "promise-series",
-  "version": "0.1.0",
+  "name": "@cloud-smith/promise-series",
+  "version": "0.2.0",
   "description": "Javascript promise-series function",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,5 +20,13 @@
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cloud-smith/promise-series.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cloud-smith/promise-series/issues"
+  },
+  "homepage": "https://github.com/cloud-smith/promise-series#readme"
 }

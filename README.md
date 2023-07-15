@@ -1,5 +1,5 @@
 # Promise Series
-A Javascript promise-series function utility.
+A Javascript promise-series function utility. See the [promise-series-demo](https://github.com/cloud-smith/promise-series-demo) repo for a complete demonstration.
 
 ## Installtion
 With NPM

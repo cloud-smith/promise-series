@@ -8,8 +8,7 @@
     "build": "tsc",
     "pack": "npm pack",
     "link": "npm link",
-    "test": "npx react-scripts test",
-    "publish": "npm publish --access=public"
+    "test": "npx react-scripts test"
   },
   "author": "Neil A Smith (theneilmiester@gmail.com)",
   "license": "ISC",
@@ -29,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/cloud-smith/promise-series/issues"
   },
-  "homepage": "https://github.com/cloud-smith/promise-series#readme",
+  "homepage": "https://github.com/cloud-smith/promise-series-demo#readme",
   "engines": {
     "node": ">=4.2.4"
   }

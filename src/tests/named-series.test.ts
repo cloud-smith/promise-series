@@ -1,5 +1,5 @@
 import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from './dummyTask';
+import { dummyTask } from '../dummyTask';
 
 it('should run named array series', async () => {
   const results = await promiseSeries({

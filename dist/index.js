@@ -18,3 +18,4 @@ exports.promiseSeries = void 0;
 var promiseSeries_1 = require("./promiseSeries");
 Object.defineProperty(exports, "promiseSeries", { enumerable: true, get: function () { return promiseSeries_1.promiseSeries; } });
 __exportStar(require("./promiseSeries.types"), exports);
+__exportStar(require("./dummyTask"), exports);

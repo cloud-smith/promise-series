@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const promiseSeries_1 = require("../promiseSeries");
-const dummyTask_1 = require("./dummyTask");
+const dummyTask_1 = require("../dummyTask");
 it('should run array series', () => __awaiter(void 0, void 0, void 0, function* () {
     const results = yield (0, promiseSeries_1.promiseSeries)({
         tasks: [

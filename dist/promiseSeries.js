@@ -13,7 +13,6 @@ exports.promiseSeries = void 0;
 const promiseSeries = (props) => {
     const config = {
         useLogging: false,
-        useLogger: null,
     };
     let state = {
         error: '',
@@ -32,9 +31,8 @@ const promiseSeries = (props) => {
     };
     const parsers = {
         parseConfig: () => {
-            var _a, _b;
+            var _a;
             config.useLogging = typeof ((_a = props.config) === null || _a === void 0 ? void 0 : _a.useLogging) === 'boolean' ? props.config.useLogging : config.useLogging;
-            config.useLogger = typeof ((_b = props.config) === null || _b === void 0 ? void 0 : _b.useLogger) === 'function' ? props.config.useLogger : config.useLogger;
         },
         parseTasks: () => {
             const tasks = props.tasks;
@@ -104,13 +102,8 @@ const promiseSeries = (props) => {
     const logger = (data) => {
         if (!config.useLogging)
             return;
-        if (config.useLogger) {
-            config.useLogger(data);
-        }
-        else {
-            // eslint-disable-next-line no-console
-            console.log(data);
-        }
+        // eslint-disable-next-line no-console
+        console.log(data);
     };
     const initPromsieSeries = () => {
         parsers.parseConfig();

@@ -11,7 +11,6 @@ import {
 export const promiseSeries = (props: SeriesProps) => {
   const config: SeriesConfig = {
     useLogging: false,
-    useLogger: null,
   };
 
   let state: SeriesState = {
@@ -34,7 +33,6 @@ export const promiseSeries = (props: SeriesProps) => {
   const parsers = {
     parseConfig: () => {
       config.useLogging = typeof props.config?.useLogging === 'boolean' ? props.config.useLogging : config.useLogging;
-      config.useLogger = typeof props.config?.useLogger === 'function' ? props.config.useLogger : config.useLogger;
     },
     parseTasks: () => {
       const tasks: any = props.tasks;
@@ -118,12 +116,8 @@ export const promiseSeries = (props: SeriesProps) => {
 
   const logger = (data: any) => {
     if (!config.useLogging) return;
-    if (config.useLogger) {
-      config.useLogger(data);
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(data);
-    }
+    // eslint-disable-next-line no-console
+    console.log(data);
   };
 
   const initPromsieSeries = () => {

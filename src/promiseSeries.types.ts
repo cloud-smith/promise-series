@@ -35,7 +35,6 @@ export type SeriesTasksUnparsed =
 
 export type SeriesConfig = {
   useLogging?: boolean;
-  useLogger?: any;
 };
 
 export type SeriesEvents = {

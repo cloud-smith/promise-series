@@ -8,7 +8,7 @@ npm i @cloud-smith/promise-series
 ```
 With Yarn
 ```
-yarn install @cloud-smith/promise-series
+yarn add @cloud-smith/promise-series
 ```
 
 ## Example

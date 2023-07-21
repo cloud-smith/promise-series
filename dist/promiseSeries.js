@@ -13,6 +13,7 @@ exports.promiseSeries = void 0;
 const promiseSeries = (props) => {
     const config = {
         useLogging: false,
+        timeout: 0,
     };
     let state = {
         error: '',
@@ -31,8 +32,9 @@ const promiseSeries = (props) => {
     };
     const parsers = {
         parseConfig: () => {
-            var _a;
+            var _a, _b;
             config.useLogging = typeof ((_a = props.config) === null || _a === void 0 ? void 0 : _a.useLogging) === 'boolean' ? props.config.useLogging : config.useLogging;
+            config.timeout = typeof ((_b = props.config) === null || _b === void 0 ? void 0 : _b.timeout) === 'number' ? props.config.timeout : config.timeout;
         },
         parseTasks: () => {
             const tasks = props.tasks;
@@ -126,9 +128,12 @@ const promiseSeries = (props) => {
     }))());
     const promsieSeriesRunner = () => new Promise((resolve, reject) => (() => __awaiter(void 0, void 0, void 0, function* () {
         const keys = Object.keys(state.tasks);
+        const timeout = config.timeout;
+        const useTimeout = timeout > 0 ? true : false;
         let taskIndex = 0;
         let taskName = '';
         let messageLabel = '';
+        let timer = undefined;
         logger(`starting...`);
         for (taskIndex; taskIndex < keys.length; taskIndex++) {
             taskName = keys[taskIndex];
@@ -138,6 +143,11 @@ const promiseSeries = (props) => {
             logger(`${messageLabel}, starting`);
             setState(Object.assign(Object.assign({}, state), { taskName,
                 taskIndex }));
+            if (useTimeout) {
+                timer = setTimeout(() => {
+                    reject('Timed out');
+                }, timeout);
+            }
             yield state.tasks[taskName](state)
                 // eslint-disable-next-line no-loop-func
                 .then(results => {
@@ -148,7 +158,15 @@ const promiseSeries = (props) => {
                 .catch(error => {
                 logger(`${messageLabel}, failed`);
                 setState(Object.assign(Object.assign({}, state), { isRunning: false, isComplete: true, error }));
-                reject(error);
+                reject({
+                    message: messageLabel,
+                    taskName,
+                    error,
+                });
+            })
+                .finally(() => {
+                if (useTimeout)
+                    clearTimeout(timer);
             });
             if (taskIndex + 1 === state.taskCount) {
                 setState(Object.assign(Object.assign({}, state), { taskName: '', isRunning: false, isComplete: true }));

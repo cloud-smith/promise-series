@@ -35,6 +35,7 @@ export type SeriesTasksUnparsed =
 
 export type SeriesConfig = {
   useLogging?: boolean;
+  timeout?: number;
 };
 
 export type SeriesEvents = {

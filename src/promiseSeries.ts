@@ -11,6 +11,7 @@ import {
 export const promiseSeries = (props: SeriesProps) => {
   const config: SeriesConfig = {
     useLogging: false,
+    timeout: 0,
   };
 
   let state: SeriesState = {
@@ -33,6 +34,7 @@ export const promiseSeries = (props: SeriesProps) => {
   const parsers = {
     parseConfig: () => {
       config.useLogging = typeof props.config?.useLogging === 'boolean' ? props.config.useLogging : config.useLogging;
+      config.timeout = typeof props.config?.timeout === 'number' ? props.config.timeout : config.timeout;
     },
     parseTasks: () => {
       const tasks: any = props.tasks;
@@ -159,10 +161,13 @@ export const promiseSeries = (props: SeriesProps) => {
     new Promise((resolve, reject) =>
       (async () => {
         const keys = Object.keys(state.tasks);
+        const timeout = config.timeout;
+        const useTimeout = timeout > 0 ? true : false;
 
         let taskIndex = 0;
         let taskName = '';
         let messageLabel = '';
+        let timer = undefined;
 
         logger(`starting...`);
 
@@ -183,10 +188,17 @@ export const promiseSeries = (props: SeriesProps) => {
             taskIndex,
           });
 
+          if (useTimeout) {
+            timer = setTimeout(() => {
+              reject('Timed out');
+            }, timeout);
+          }
+
           await state.tasks[taskName](state)
             // eslint-disable-next-line no-loop-func
             .then(results => {
               logger(`${messageLabel}, finished`);
+
               setState({
                 ...state,
                 results: {
@@ -206,7 +218,14 @@ export const promiseSeries = (props: SeriesProps) => {
                 error,
               });
 
-              reject(error);
+              reject({
+                message: messageLabel,
+                taskName,
+                error,
+              });
+            })
+            .finally(() => {
+              if (useTimeout) clearTimeout(timer)
             });
 
           if (taskIndex + 1 === state.taskCount) {

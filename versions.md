@@ -1,5 +1,9 @@
 @cloud-smith/promise-series
 
+21/7/2023
+- 1.0.3 - Updates on-task-fail to returns state
+- 1.0.2 - Adds config timeout
+
 15/7/2023
 - 1.0.1 - Updates the homepage link
 

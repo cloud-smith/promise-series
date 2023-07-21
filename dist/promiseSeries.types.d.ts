@@ -22,6 +22,7 @@ export type SeriesTasks = SeriesFunctionPromise[] | SeriesNamedTasks | SeriesFun
 export type SeriesTasksUnparsed = SeriesFunctionPromise[] | SeriesFunction[] | Record<string, SeriesFunctionPromise | SeriesFunction>;
 export type SeriesConfig = {
     useLogging?: boolean;
+    timeout?: number;
 };
 export type SeriesEvents = {
     onStateChange?: (stateUpdate: SeriesState) => void;

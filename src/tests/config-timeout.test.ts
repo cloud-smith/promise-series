@@ -3,29 +3,23 @@ import { dummyTask } from '../dummyTask';
 
 it('should run array series with a timeout', async () => {
   const results = await promiseSeries({
-    config: {
-      timeout: 1000,
-    },
+    timeout: 1000,
 		tasks: [
 			() => dummyTask({ delay: 100 }),
 			() => dummyTask({ delay: 100 }),
 			() => dummyTask({ delay: 100 }),
 		],
 	});
-	expect(results).toStrictEqual({
-    "task-1": "Task Success",
-    "task-2": "Task Success",
-    "task-3": "Task Success",
-  });
+	expect(JSON.stringify(results)).toStrictEqual(
+    `[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]`
+  );
 });
 
 it('should fail array series with a timeout', async () => {
   expect.assertions(1);
   try {
     await promiseSeries({
-      config: {
-        timeout: 1000,
-      },
+      timeout: 1000,
       tasks: [
         () => dummyTask({ delay: 100 }),
         () => dummyTask({ delay: 1500 }),

@@ -25,46 +25,5 @@ it('should return state changes', () => __awaiter(void 0, void 0, void 0, functi
         delete (parsed.tasks);
         return parsed;
     });
-    expect(statesWithoutTasks).toStrictEqual([
-        {
-            "error": "",
-            "isComplete": false,
-            "isRunning": true,
-            "results": {},
-            "taskCount": 1,
-            "taskIndex": 0,
-            "taskName": "",
-        },
-        {
-            "error": "",
-            "isComplete": false,
-            "isRunning": true,
-            "results": {},
-            "taskCount": 1,
-            "taskIndex": 0,
-            "taskName": "task-1",
-        },
-        {
-            "error": "",
-            "isComplete": false,
-            "isRunning": true,
-            "results": {
-                "task-1": "Task Success",
-            },
-            "taskCount": 1,
-            "taskIndex": 0,
-            "taskName": "task-1",
-        },
-        {
-            "error": "",
-            "isComplete": true,
-            "isRunning": false,
-            "results": {
-                "task-1": "Task Success",
-            },
-            "taskCount": 1,
-            "taskIndex": 0,
-            "taskName": "",
-        },
-    ]);
+    expect(JSON.stringify(statesWithoutTasks)).toStrictEqual(`[{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"},{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"task-1\",\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\"},{\"isRunning\":false,\"isComplete\":true,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]`);
 }));

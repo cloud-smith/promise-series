@@ -2,244 +2,379 @@ import {
   SeriesProps,
   SeriesConfig,
   SeriesState,
-  SeriesEvents,
-  SeriesNamedTasks,
   SeriesFunctionPromise,
   SeriesFunction,
+  SeriesTasksUnparsed,
+  SeriesMixedArray,
+  SeriesMixedNamed,
+  SeriesTasks,
+  SeriesRollbacks,
 } from './promiseSeries.types';
 
 export const promiseSeries = (props: SeriesProps) => {
-  const config: SeriesConfig = {
-    useLogging: false,
-    timeout: 0,
+  const utils = {
+    logger: (data?: any) => {
+      if (!config.useLogging) return;
+      // eslint-disable-next-line no-console
+      console.log(data);
+    },
+    getTaskType: (collection: SeriesTasksUnparsed) => {
+      const isArray = Array.isArray(collection);
+
+      const isNamedArray =
+        !isArray && typeof collection === 'object' && Object.keys(collection).length
+          ? true
+          : false;
+      
+      return {
+        isArray,
+        isNamedArray,
+      }
+    },
+    wrapTask: (task: SeriesFunction) => (state: any) =>
+      new Promise((resolve, reject) => {
+        try {
+          const result = task(state);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      }),
+  };
+
+  let config: SeriesConfig = {
+    useLogging: true,
+    timeout: 30000,
+    shouldRollbackInSeries: false,
+    useLogger: utils.logger,
+    onStateChange: () => {},
+    onStarting: () => {},
+    onTaskStart: () => {},
+    onTaskComplete: () => {},
+    onTaskFailed: () => {},
+    onFinished: () => {},
   };
 
   let state: SeriesState = {
-    error: '',
     isRunning: false,
     isComplete: false,
-    tasks: {},
-    results: {},
-    taskCount: 0,
     taskIndex: 0,
     taskName: '',
+    taskLabel: '',
+    get: () => ({
+      isRunning: state.isRunning,
+      isComplete: state.isComplete,
+      taskIndex: state.taskIndex,
+      taskName: state.taskName,
+      taskLabel: state.taskLabel,
+      tasks: tasks.stack,
+    }),
+    set: update => {
+      state = {
+        ...state,
+        ...update,
+      };
+      config.onStateChange(state.get());
+    },
   };
 
-  const events: SeriesEvents = {
-    onStateChange: undefined,
-    onComplete: undefined,
-    onError: undefined,
+  let tasks: SeriesTasks = {
+    stack: [],
+    total: 0,
+    push: (task, taskName) => {
+      const number = tasks.stack.length + 1;
+      const name = taskName ? taskName : `task-${number}`;
+      tasks.stack.push({
+        number,
+        name,
+        task,
+        results: undefined,
+        error: undefined,
+      });
+    },
+    set: update =>
+      tasks = {
+        ...tasks,
+        ...update,
+      },
+  };
+
+  let rollbacks: SeriesRollbacks = {
+    stack: [],
+    total: 0,
+    push: (task, taskName) => {
+      const number = rollbacks.stack.length + 1;
+      const name = taskName ? taskName : `task-${number}`;
+      rollbacks.stack.push({
+        number,
+        name,
+        task,
+        results: undefined,
+        error: undefined,
+      });
+    },
+    set: update =>
+      rollbacks = {
+        ...rollbacks,
+        ...update,
+      },
+  };
+
+  const events = {
+    onStarting: () => {
+      log('starting tasks');
+      
+      config.onStarting(state.get());
+      
+      if (tasks.total) {
+        state.set({
+          isComplete: false,
+          isRunning: true,
+        });
+      } else {
+        log('tasks empty');
+      }
+    },
+    onTaskStart: () => {
+      log(`${state.taskLabel} starting`);
+      config.onTaskStart(state.get());
+    },
+    onTaskComplete: (results: any) => {
+      log(`${state.taskLabel} complete`);
+      config.onTaskComplete(state.get());
+      tasks.stack[state.taskIndex].results = results;
+    },
+    onTaskFailed: (error: string) => {
+      log('task failed');
+
+      config.onTaskFailed(state.get());
+
+      tasks.stack[state.taskIndex].error = error;
+
+      state.set({
+        isRunning: false,
+      });
+    },
+    onFinished: () => {
+      log('finished tasks');
+      config.onFinished(state.get());
+      state.set({
+        isComplete: true,
+        isRunning: false,
+        taskIndex: 0,
+        taskName: '',
+        taskLabel: '',
+      });
+    },
+    onStartingRollback: () => {
+      log('starting rollback');
+      
+      config.onStarting(state.get());
+      
+      if (rollbacks.total) {
+        state.set({
+          isComplete: false,
+          isRunning: true,
+        });
+      }
+    },
+    onRollbackTaskStart: () => {
+      log(`${state.taskLabel} starting`);
+      config.onTaskStart(state.get());
+    },
+    onRollbackTaskComplete: (results: any) => {
+      log(`${state.taskLabel} complete`);
+      config.onTaskComplete(state.get());
+      rollbacks.stack[state.taskIndex].results = results;
+    },
+    onRollbackTaskFailed: (error: string) => {
+      log(`${state.taskLabel} failed`);
+
+      config.onTaskFailed(state.get());
+
+      rollbacks.stack[state.taskIndex].error = error;
+
+      state.set({
+        isRunning: false,
+      });
+    },
+    onRollbackFinished: () => {
+      log('finished rolling back');
+      config.onFinished(state.get());
+      state.set({
+        isComplete: true,
+        isRunning: false,
+        taskIndex: 0,
+        taskName: '',
+        taskLabel: '',
+      });
+    },
   };
 
   const parsers = {
-    parseConfig: () => {
-      config.useLogging = typeof props.config?.useLogging === 'boolean' ? props.config.useLogging : config.useLogging;
-      config.timeout = typeof props.config?.timeout === 'number' ? props.config.timeout : config.timeout;
+    parseConfig: (configUpdate?: SeriesProps) => {
+      if (typeof configUpdate !== 'object') return;
+      if (typeof configUpdate.useLogging === 'boolean') config.useLogging = configUpdate.useLogging;
+      if (typeof configUpdate.timeout === 'number') config.timeout = configUpdate.timeout;
+      if (typeof configUpdate.useLogger === 'function') config.useLogger = configUpdate.useLogger;
+      if (typeof configUpdate.onStateChange === 'function') config.onStateChange = configUpdate.onStateChange;
+      if (typeof configUpdate.onStarting === 'function') config.onStarting = configUpdate.onStarting;
+      if (typeof configUpdate.onTaskStart === 'function') config.onTaskStart = configUpdate.onTaskStart;
+      if (typeof configUpdate.onTaskComplete === 'function') config.onTaskComplete = configUpdate.onTaskComplete;
+      if (typeof configUpdate.onTaskFailed === 'function') config.onTaskFailed = configUpdate.onTaskFailed;
+      if (typeof configUpdate.onFinished === 'function') config.onFinished = configUpdate.onFinished;
     },
-    parseTasks: () => {
-      const tasks: any = props.tasks;
+    parseTasks: (collection: SeriesTasksUnparsed) => {
+      const format = utils.getTaskType(collection);
 
-      const results: {
-        tasks: SeriesNamedTasks;
-        keys: string[];
-      } = {
-        tasks: {},
-        keys: [],
-      };
-
-      const isArraySeries = Array.isArray(tasks);
-
-      const isNamedArraySeries =
-        !isArraySeries && typeof tasks === 'object' && Object.keys(tasks).length
-          ? true
-          : false;
-
-      const addTask = (name: string, task: SeriesFunctionPromise) =>
-        (results.tasks[name] = task);
-
-      const wrapFunctionWithPromsie = (task: SeriesFunction) => (state: any) =>
-        new Promise((resolve, reject) => {
-          try {
-            const result = task(state);
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
+      if (format.isArray) {
+        (collection as SeriesMixedArray).forEach(item => {
+          if (typeof item === 'object') tasks.push(item);
+          if (typeof item === 'function') tasks.push(utils.wrapTask(item));
         });
+      }
 
-      const parseArraySeries = () => {
-        tasks.forEach((task: any, taskNumber: number) => {
-          if (typeof task === 'object') {
-            addTask(`task-${taskNumber + 1}`, task);
-          }
-          if (typeof task === 'function') {
-            addTask(`task-${taskNumber + 1}`, wrapFunctionWithPromsie(task));
-          }
+      if (format.isNamedArray) {
+        Object.keys(collection).forEach(key => {
+          const item = (collection as SeriesMixedNamed)[key];
+          if (typeof item === 'object') tasks.push(item as SeriesFunctionPromise, key);
+          if (typeof item === 'function') tasks.push(utils.wrapTask(item), key);
         });
-        results.keys = Object.keys(tasks);
-      };
+      }
 
-      const parseNamedArraySeries = () => {
-        results.keys = Object.keys(tasks);
-        (results.keys || []).forEach(key => {
-          if (typeof tasks[key] === 'object') addTask(key, tasks[key]);
-          if (typeof tasks[key] === 'function')
-            addTask(key, wrapFunctionWithPromsie(tasks[key]));
-        });
-      };
-
-      if (isArraySeries) parseArraySeries();
-      if (isNamedArraySeries) parseNamedArraySeries();
-
-      state.tasks = results.tasks;
-      state.taskCount = results.keys.length;
+      tasks.set({ total: tasks.stack.length });
     },
-    parseEventHandlers: () => {
-      events.onStateChange =
-        typeof props.onStateChange === 'function'
-          ? props.onStateChange
-          : events.onStateChange;
-      events.onComplete =
-        typeof props.onComplete === 'function'
-          ? props.onComplete
-          : events.onComplete;
-      events.onError =
-        typeof props.onError === 'function' ? props.onError : events.onError;
+    parseRollbacks: (collection?: SeriesTasksUnparsed) => {
+      const format = utils.getTaskType(collection || {});
+
+      if (format.isArray) {
+        (collection as SeriesMixedArray).forEach(item => {
+          if (typeof item === 'object') rollbacks.push(item);
+          if (typeof item === 'function') rollbacks.push(utils.wrapTask(item));
+        });
+      }
+
+      if (format.isNamedArray) {
+        Object.keys(collection || {}).forEach(key => {
+          const item = (collection as SeriesMixedNamed)[key];
+          if (typeof item === 'object') rollbacks.push(item as SeriesFunctionPromise, key);
+          if (typeof item === 'function') rollbacks.push(utils.wrapTask(item), key);
+        });
+      }
+
+      rollbacks.set({ total: rollbacks.stack.length });
     },
   };
 
-  const setState = (stateUpdate: SeriesState) => {
-    state = {
-      ...state,
-      ...stateUpdate,
-    };
-    if (events.onStateChange) events.onStateChange(state);
+  const log = (log: any) => config.useLogger(log);
+
+  const init = () => {
+    parsers.parseConfig(props);
+    parsers.parseTasks(props.tasks);
+    parsers.parseRollbacks(props.rollbacks);
+    return run();
   };
 
-  const logger = (data: any) => {
-    if (!config.useLogging) return;
-    // eslint-disable-next-line no-console
-    console.log(data);
-  };
-
-  const initPromsieSeries = () => {
-    parsers.parseConfig();
-    parsers.parseTasks();
-    parsers.parseEventHandlers();
-    return runPromsieSeries();
-  };
-
-  const runPromsieSeries = () =>
+  const run = () =>
     new Promise((resolve, reject) =>
       (async () => {
-        const onLoading = () =>
-          setState({
-            ...state,
-            isRunning: true,
-            isComplete: false,
-            taskIndex: 0,
-            taskName: '',
-          });
-
-        const onComplete = (results: any) => {
-          logger('finished');
-          resolve(results);
-        };
-
-        const onError = (error: string) => {
-          logger('failed');
-          reject(error);
-        };
-
-        onLoading();
-
-        await promsieSeriesRunner().then(onComplete).catch(onError);
-      })()
-    );
-
-  const promsieSeriesRunner = () =>
-    new Promise((resolve, reject) =>
-      (async () => {
-        const keys = Object.keys(state.tasks);
-        const timeout = config.timeout;
-        const useTimeout = timeout > 0 ? true : false;
-
         let taskIndex = 0;
         let taskName = '';
-        let messageLabel = '';
-        let timer = undefined;
+        let taskLabel = '';
+        let taskTimer: ReturnType<typeof setTimeout>;
 
-        logger(`starting...`);
+        events.onStarting();
+      
+        for (taskIndex; taskIndex < tasks.total; taskIndex++) {
+          if (! state.isRunning) return;
 
-        for (taskIndex; taskIndex < keys.length; taskIndex++) {
-          taskName = keys[taskIndex];
+          taskName = tasks.stack[taskIndex].name;
+          taskLabel = `task ${taskIndex+1} of ${tasks.total} "${taskName}"`;
 
-          messageLabel = `task ${taskIndex + 1} of ${
-            state.taskCount
-          }: ${taskName}`;
-
-          if (state.error) return;
-
-          logger(`${messageLabel}, starting`);
-
-          setState({
-            ...state,
-            taskName,
+          state.set({
             taskIndex,
+            taskName,
+            taskLabel,
           });
 
-          if (useTimeout) {
-            timer = setTimeout(() => {
+          events.onTaskStart();
+
+          if (config.timeout) {
+            taskTimer = setTimeout(() => {
               reject('Timed out');
-            }, timeout);
+            }, config.timeout);
           }
 
-          await state.tasks[taskName](state)
-            // eslint-disable-next-line no-loop-func
-            .then(results => {
-              logger(`${messageLabel}, finished`);
+          await tasks.stack[taskIndex].task(state.get())
+            .then(events.onTaskComplete)
+            .catch(async error => {
+              events.onTaskFailed(error);
 
-              setState({
-                ...state,
-                results: {
-                  ...state.results,
-                  [taskName]: results,
-                },
-              });
-            })
-            // eslint-disable-next-line no-loop-func
-            .catch(error => {
-              logger(`${messageLabel}, failed`);
+              if (rollbacks.total) {
+                clearTimeout(taskTimer);
+                await rollback(taskIndex);
+              }
 
-              setState({
-                ...state,
-                isRunning: false,
-                isComplete: true,
-                error,
-              });
-
-              reject({
-                message: messageLabel,
-                taskName,
-                error,
-              });
+              reject(tasks.stack[taskIndex]);
             })
             .finally(() => {
-              if (useTimeout) clearTimeout(timer)
+              if (config.timeout) clearTimeout(taskTimer);
             });
-
-          if (taskIndex + 1 === state.taskCount) {
-            setState({
-              ...state,
-              taskName: '',
-              isRunning: false,
-              isComplete: true,
-            });
-            resolve(state.results);
-          }
         }
+
+        events.onFinished();
+        resolve(tasks.stack);
       })()
     );
 
-  return initPromsieSeries();
+  const rollback = (fromTaskIndex: number) =>
+    new Promise((resolve, reject) =>
+      (async () => {
+        let taskIndex = fromTaskIndex;
+        let taskName = '';
+        let taskLabel = '';
+        let taskTimer: ReturnType<typeof setTimeout>;
+
+        events.onStartingRollback();
+      
+        for (taskIndex; taskIndex >= 0; taskIndex--) {
+          if (! state.isRunning) return;
+
+          taskName = rollbacks.stack[taskIndex].name;
+          taskLabel = `rollback ${taskIndex+1} of ${rollbacks.total} "${taskName}"`;
+
+          state.set({
+            taskIndex,
+            taskName,
+            taskLabel,
+          });
+
+          events.onRollbackTaskStart();
+
+          if (config.timeout) {
+            taskTimer = setTimeout(() => {
+              reject('Timed out');
+            }, config.timeout);
+          }
+
+          await rollbacks.stack[taskIndex].task(state.get())
+            .then(events.onRollbackTaskComplete)
+            .catch(error => {
+              events.onRollbackTaskFailed(error);
+
+              if (config.shouldRollbackInSeries) {
+                reject(rollbacks.stack[taskIndex]);
+              }
+            })
+            .finally(() => {
+              if (config.timeout) clearTimeout(taskTimer);
+            });
+        }
+
+        events.onRollbackFinished();
+        resolve(rollbacks.stack);
+      })()
+    );
+
+  return init();
 };

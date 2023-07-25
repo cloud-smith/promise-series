@@ -17,9 +17,9 @@ yarn add @cloud-smith/promise-series
 import { promiseSeries } from '@cloud-smith/promise-series';
 
 const tasks = [
-  () => dummyTask({ name: 'Task 1', delay: 500 }),
-  () => dummyTask({ name: 'Task 2', delay: 500 }),
-  () => dummyTask({ name: 'Task 3', delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
 ];
 
 await promiseSeries(tasks)
@@ -37,7 +37,7 @@ export const dummyTask = ({ delay, shouldFail, state }: {
   state?: any;
 }) => new Promise((resolve, reject) => {
   setTimeout(() => {
-    if (state) console.log(state);
+    if (state) console.log('Task State: ', state);
     if (shouldFail) reject(`Task Failed`);
     else resolve(`Task Success`);
   }, delay);
@@ -120,6 +120,25 @@ const tasks = [
 ];
 
 await promiseSeries({ tasks })
+  .then(console.log)
+  .catch(console.error);
+```
+
+### Rollbacks
+```
+const tasks = [
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+];
+
+const rollbacks = [
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+  () => dummyTask({ delay: 500 }),
+];
+
+await promiseSeries({ tasks, rollbacks })
   .then(console.log)
   .catch(console.error);
 ```

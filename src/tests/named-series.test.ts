@@ -9,11 +9,9 @@ it('should run named array series', async () => {
       getGrapes: () => dummyTask({ delay: 100 }),
     },
 	});
-	expect(results).toStrictEqual({
-    "getApples": "Task Success",
-    "getOrganges": "Task Success",
-    "getGrapes": "Task Success",
-  });
+	expect(JSON.stringify(results)).toStrictEqual(
+    `[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}]`
+  );
 });
 
 it('should fail named series', async () => {
@@ -27,6 +25,8 @@ it('should fail named series', async () => {
       },
     });
   } catch (error) {
-    expect(error).toStrictEqual("Task Failed");
+    expect(JSON.stringify(error)).toStrictEqual(
+      `{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task Failed\"}`
+    );
   }
 });

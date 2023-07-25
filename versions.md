@@ -1,5 +1,22 @@
 @cloud-smith/promise-series
 
+TODOS
+- Bug: Unable to setState correctly during a task.
+- Rollback tasks count and names must match tasks during parsing.
+
+25/7/2023
+- 1.2.0 - Adds rollbacks
+
+23/7/2023
+- 1.1.0
+  - Refactors config parser
+  - Refactors tasks parser
+  - Refactors state to tasks
+  - Refactors runPromsieSeries
+  - Refactors events to callbacks
+  - Refactors logger to log
+  - Adds task lifecycle events
+
 21/7/2023
 - 1.0.3 - Updates on-task-fail to returns state
 - 1.0.2 - Adds config timeout

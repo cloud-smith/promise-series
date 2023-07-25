@@ -1,45 +1,103 @@
-export type SeriesProps = {
+export interface SeriesProps extends SeriesConfigUpdate {
   tasks: SeriesTasksUnparsed;
-  config?: SeriesConfig;
-  onComplete?: (results: any) => void;
-  onError?: (error: string) => void;
-  onStateChange?: (state: SeriesState) => void;
+  rollbacks?: SeriesTasksUnparsed;
 };
+
+export type SeriesConfig = {
+  useLogging: boolean;
+  timeout: number;
+  shouldRollbackInSeries: boolean;
+  useLogger: (data: any) => void;
+  onStateChange: (state: SeriesStateUpdate) => void;
+  onStarting: (state: SeriesStateUpdate) => void;
+  onTaskStart: (state: SeriesStateUpdate) => void;
+  onTaskComplete: (state: SeriesStateUpdate) => void;
+  onTaskFailed: (state: SeriesStateUpdate) => void;
+  onFinished: (state: SeriesStateUpdate) => void;
+};
+
+export type SeriesConfigUpdate = {
+  useLogging?: boolean;
+  timeout?: number;
+  shouldRollbackInSeries?: boolean;
+  useLogger?: (data: any) => void;
+  onStateChange?: (state: SeriesStateUpdate) => void;
+  onStarting?: (state: SeriesStateUpdate) => void;
+  onTaskStart?: (state: SeriesStateUpdate) => void;
+  onTaskComplete?: (state: SeriesStateUpdate) => void;
+  onTaskFailed?: (state: SeriesStateUpdate) => void;
+  onFinished?: (state: SeriesStateUpdate) => void;
+}
 
 export type SeriesState = {
-  error: string;
   isRunning: boolean;
   isComplete: boolean;
-  tasks: SeriesNamedTasks;
-  results: Record<string, any>;
-  taskCount: number;
   taskIndex: number;
   taskName: string;
+  taskLabel: string;
+  get: () => SeriesStateUpdate;
+  set: (update: SeriesStateProps) => void;
 };
 
-export type SeriesFunctionPromise = (state: SeriesState) => Promise<unknown>;
+export type SeriesStateUpdate = {
+  isRunning: boolean;
+  isComplete: boolean;
+  taskIndex: number;
+  taskName: string;
+  taskLabel: string;
+  tasks: SeriesTask[];
+};
 
-export type SeriesFunction = (state: SeriesState) => void;
+export type SeriesStateProps = {
+  isRunning?: boolean;
+  isComplete?: boolean;
+  taskIndex?: number;
+  taskName?: string;
+  taskLabel?: string;
+};
 
-export type SeriesNamedTasks = Record<string, SeriesFunctionPromise>;
+export type SeriesTasks = {
+  stack: SeriesTask[];
+  total: number;
+  push: (task: SeriesFunctionPromise, taskName?: string) => void;
+  set: (update: SeriesTasksUpdate) => void;
+};
 
-export type SeriesTasks =
+export type SeriesTask = {
+  number: number;
+  name: string;
+  task: SeriesFunctionPromise;
+  results: any;
+  error?: string;
+};
+
+export type SeriesTasksUpdate = {
+  total?: number;
+};
+
+export type SeriesRollbacks = {
+  stack: SeriesTask[];
+  total: number;
+  push: (task: SeriesFunctionPromise, taskName?: string) => void;
+  set: (update: SeriesTasksUpdate) => void;
+};
+
+export type SeriesFunctionPromise = (state: SeriesStateUpdate) => Promise<unknown>;
+
+export type SeriesFunction = (state: SeriesStateUpdate) => void;
+
+export type SeriesMixedArray =
   | SeriesFunctionPromise[]
-  | SeriesNamedTasks
   | SeriesFunction[];
+
+export type SeriesMixedNamed =
+  | SeriesNamedTasks
+  | SeriesNamedFunctions;
+
+export type SeriesNamedFunctions = Record<string, SeriesFunction>;
+export type SeriesNamedTasks = Record<string, SeriesFunctionPromise>;
 
 export type SeriesTasksUnparsed =
   | SeriesFunctionPromise[]
   | SeriesFunction[]
   | Record<string, SeriesFunctionPromise | SeriesFunction>;
-
-export type SeriesConfig = {
-  useLogging?: boolean;
-  timeout?: number;
-};
-
-export type SeriesEvents = {
-  onStateChange?: (stateUpdate: SeriesState) => void;
-  onComplete?: (results: any) => void;
-  onError?: (errorMessage: string) => void;
-};

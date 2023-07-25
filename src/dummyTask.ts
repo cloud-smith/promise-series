@@ -4,7 +4,7 @@ export const dummyTask = ({ delay, shouldFail, state }: {
   state?: any;
 }) => new Promise((resolve, reject) => {
   setTimeout(() => {
-    if (state) console.log(state);
+    if (state) console.log('Task State: ', state);
     if (shouldFail) reject(`Task Failed`);
     else resolve(`Task Success`);
   }, delay);

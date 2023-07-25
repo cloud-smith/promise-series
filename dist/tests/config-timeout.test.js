@@ -13,28 +13,20 @@ const promiseSeries_1 = require("../promiseSeries");
 const dummyTask_1 = require("../dummyTask");
 it('should run array series with a timeout', () => __awaiter(void 0, void 0, void 0, function* () {
     const results = yield (0, promiseSeries_1.promiseSeries)({
-        config: {
-            timeout: 1000,
-        },
+        timeout: 1000,
         tasks: [
             () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
             () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
             () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
         ],
     });
-    expect(results).toStrictEqual({
-        "task-1": "Task Success",
-        "task-2": "Task Success",
-        "task-3": "Task Success",
-    });
+    expect(JSON.stringify(results)).toStrictEqual(`[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]`);
 }));
 it('should fail array series with a timeout', () => __awaiter(void 0, void 0, void 0, function* () {
     expect.assertions(1);
     try {
         yield (0, promiseSeries_1.promiseSeries)({
-            config: {
-                timeout: 1000,
-            },
+            timeout: 1000,
             tasks: [
                 () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
                 () => (0, dummyTask_1.dummyTask)({ delay: 1500 }),

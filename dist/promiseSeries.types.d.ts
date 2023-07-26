@@ -5,7 +5,7 @@ export interface SeriesProps extends SeriesConfigUpdate {
 export type SeriesConfig = {
     useLogging: boolean;
     timeout: number;
-    shouldRollbackInSeries: boolean;
+    shouldRollbackInParallel: boolean;
     useLogger: (data: any) => void;
     onStateChange: (state: SeriesStateUpdate) => void;
     onStarting: (state: SeriesStateUpdate) => void;
@@ -17,7 +17,7 @@ export type SeriesConfig = {
 export type SeriesConfigUpdate = {
     useLogging?: boolean;
     timeout?: number;
-    shouldRollbackInSeries?: boolean;
+    shouldRollbackInParallel?: boolean;
     useLogger?: (data: any) => void;
     onStateChange?: (state: SeriesStateUpdate) => void;
     onStarting?: (state: SeriesStateUpdate) => void;

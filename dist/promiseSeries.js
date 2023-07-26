@@ -41,7 +41,7 @@ const promiseSeries = (props) => {
     let config = {
         useLogging: true,
         timeout: 30000,
-        shouldRollbackInSeries: false,
+        shouldRollbackInParallel: false,
         useLogger: utils.logger,
         onStateChange: () => { },
         onStarting: () => { },
@@ -337,7 +337,7 @@ const promiseSeries = (props) => {
                 .then(events.onRollbackTaskComplete)
                 .catch(error => {
                 events.onRollbackTaskFailed(error);
-                if (config.shouldRollbackInSeries) {
+                if (!config.shouldRollbackInParallel) {
                     reject(rollbacks.stack[taskIndex]);
                 }
             })

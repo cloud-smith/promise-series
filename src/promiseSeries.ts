@@ -74,6 +74,12 @@ export const promiseSeries = (props: SeriesProps) => {
         if (typeof key === 'string') task = tasks.stack.find(item => item.name === key);
         return task;
       },
+      findResults: key => {
+        let task: any = {};
+        if (typeof key === 'number') task = tasks.stack.find(item => item.number === key);
+        if (typeof key === 'string') task = tasks.stack.find(item => item.name === key);
+        return task.results;
+      },
     }),
     set: update => {
       state = {

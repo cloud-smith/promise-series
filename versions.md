@@ -5,6 +5,7 @@ TODOS
 - Rollback tasks count and names must match tasks during parsing.
 
 26/7/2023
+- 1.2.3 - Adds findResults to state updates
 - 1.2.2 - Updates getTask to findTask
 - 1.2.1 - Adds getTask to state updates
 

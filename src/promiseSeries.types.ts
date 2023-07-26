@@ -47,6 +47,7 @@ export type SeriesStateUpdate = {
   taskLabel: string;
   tasks: SeriesTask[];
   findTask: (key: string | number) => {} | SeriesTask;
+  findResults: (key: string | number) => {} | SeriesTask;
 };
 
 export type SeriesStateProps = {

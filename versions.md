@@ -4,6 +4,9 @@ TODOS
 - Bug: Unable to setState correctly during a task.
 - Rollback tasks count and names must match tasks during parsing.
 
+26/7/2023
+- 1.2.1 - Adds getTask to state updates
+
 25/7/2023
 - 1.2.0 - Adds rollbacks
 

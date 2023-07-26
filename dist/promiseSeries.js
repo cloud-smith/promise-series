@@ -63,6 +63,14 @@ const promiseSeries = (props) => {
             taskName: state.taskName,
             taskLabel: state.taskLabel,
             tasks: tasks.stack,
+            getTask: (key) => {
+                let task = {};
+                if (typeof key === 'number')
+                    task = tasks.stack.find(item => item.number === key);
+                if (typeof key === 'string')
+                    task = tasks.stack.find(item => item.name === key);
+                return task;
+            },
         }),
         set: update => {
             state = Object.assign(Object.assign({}, state), update);

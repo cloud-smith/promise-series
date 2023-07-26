@@ -46,6 +46,7 @@ export type SeriesStateUpdate = {
   taskName: string;
   taskLabel: string;
   tasks: SeriesTask[];
+  getTask: (key: string | number) => {} | SeriesTask;
 };
 
 export type SeriesStateProps = {

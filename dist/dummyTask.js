@@ -6,7 +6,7 @@ const dummyTask = ({ delay, shouldFail, state }) => new Promise((resolve, reject
         if (state)
             console.log('Task State: ', state);
         if (shouldFail)
-            reject(`Task Failed`);
+            reject(`Task simulated failure`);
         else
             resolve(`Task Success`);
     }, delay);

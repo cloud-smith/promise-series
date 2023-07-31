@@ -9,14 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const promiseSeries_1 = require("../promiseSeries");
-const dummyTask_1 = require("../dummyTask");
+const __1 = require("../");
 it('should run mixed task types using a named array', () => __awaiter(void 0, void 0, void 0, function* () {
-    const results = yield (0, promiseSeries_1.promiseSeries)({
+    const results = yield (0, __1.promiseSeries)({
         tasks: {
-            getApples: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            getOrganges: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            getGrapes: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
+            getApples: () => (0, __1.dummyTask)({ delay: 100 }),
+            getOrganges: () => (0, __1.dummyTask)({ delay: 100 }),
+            getGrapes: () => (0, __1.dummyTask)({ delay: 100 }),
             getNoneAsync: () => {
                 const result = 'non-async task success';
                 console.log(result);
@@ -24,5 +23,5 @@ it('should run mixed task types using a named array', () => __awaiter(void 0, vo
             }
         },
     });
-    expect(JSON.stringify(results)).toStrictEqual(`[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"getNoneAsync\",\"results\":\"non-async task success\"}]`);
+    expect(JSON.stringify(results)).toStrictEqual("[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"task-4\",\"results\":\"non-async task success\"}]");
 }));

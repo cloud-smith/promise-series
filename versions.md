@@ -3,7 +3,20 @@
 TODOS
 - Bug: Unable to setState correctly during a task.
 - Add: Rollbacks count and names must match tasks during parsing.
-- Update: Refactor promiseSeries into a class. 
+- Update: Refactor promiseSeries into a class.
+
+1/8/2023
+- 2.0.1 Fixes type on passing task state to tasks
+
+31/7/2023
+- 2.0.0
+  - Refactors promise-series into an exported class
+  - Breaking changes, updated event-hooks
+
+27/7/2023
+- 1.2.5
+  - Bug fixes type bug on findTasks and findResults
+  - Resolves linting issues on run and rollback
 
 26/7/2023
 - 1.2.4 - Refactors shouldRollbackInSeries to shouldRollbackInParallel

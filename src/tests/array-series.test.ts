@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should run array series', async () => {
   const results = await promiseSeries({
@@ -25,6 +24,6 @@ it('should test array series error handling', async () => {
       ],
     });
   } catch (error) {
-    expect(JSON.stringify(error)).toStrictEqual(`{\"number\":2,\"name\":\"task-2\",\"error\":\"Task Failed\"}`);
+    expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}");
   }
 });

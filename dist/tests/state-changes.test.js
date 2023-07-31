@@ -9,14 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const promiseSeries_1 = require("../promiseSeries");
-const dummyTask_1 = require("../dummyTask");
+const __1 = require("../");
 it('should return state changes', () => __awaiter(void 0, void 0, void 0, function* () {
     const states = [];
     let statesWithoutTasks = [];
-    yield (0, promiseSeries_1.promiseSeries)({
+    yield (0, __1.promiseSeries)({
         tasks: [
-            () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
+            () => (0, __1.dummyTask)({ delay: 100 }),
         ],
         onStateChange: update => states.push(update),
     });
@@ -25,5 +24,5 @@ it('should return state changes', () => __awaiter(void 0, void 0, void 0, functi
         delete (parsed.tasks);
         return parsed;
     });
-    expect(JSON.stringify(statesWithoutTasks)).toStrictEqual(`[{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"},{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"task-1\",\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\"},{\"isRunning\":false,\"isComplete\":true,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]`);
+    expect(JSON.stringify(statesWithoutTasks)).toStrictEqual("[{\"config\":{},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{},\"isRunning\":false,\"isComplete\":true,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null},\"collection\":\"\",\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]");
 }));

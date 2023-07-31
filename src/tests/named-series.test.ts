@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should run named array series', async () => {
   const results = await promiseSeries({
@@ -10,7 +9,7 @@ it('should run named array series', async () => {
     },
 	});
 	expect(JSON.stringify(results)).toStrictEqual(
-    `[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}]`
+    "[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]"
   );
 });
 
@@ -26,7 +25,7 @@ it('should fail named series', async () => {
     });
   } catch (error) {
     expect(JSON.stringify(error)).toStrictEqual(
-      `{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task Failed\"}`
+      "{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}"
     );
   }
 });

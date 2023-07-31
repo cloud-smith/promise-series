@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should run mixed task types using an array', async () => {
   const results = await promiseSeries({

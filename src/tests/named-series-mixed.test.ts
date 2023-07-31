@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should run mixed task types using a named array', async () => {
   const results = await promiseSeries({
@@ -15,6 +14,6 @@ it('should run mixed task types using a named array', async () => {
     },
 	});
 	expect(JSON.stringify(results)).toStrictEqual(
-    `[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"getNoneAsync\",\"results\":\"non-async task success\"}]`
+    "[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"task-4\",\"results\":\"non-async task success\"}]"
   );
 });

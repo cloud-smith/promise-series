@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should return state changes', async () => {
   const states = [];
@@ -19,6 +18,6 @@ it('should return state changes', async () => {
   });
 
 	expect(JSON.stringify(statesWithoutTasks)).toStrictEqual(
-    `[{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"},{\"isRunning\":true,\"isComplete\":false,\"taskIndex\":0,\"taskName\":\"task-1\",\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\"},{\"isRunning\":false,\"isComplete\":true,\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]`    
+    "[{\"config\":{},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{},\"isRunning\":false,\"isComplete\":true,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null},\"collection\":\"\",\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]"
   );
 });

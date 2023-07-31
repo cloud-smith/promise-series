@@ -9,14 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const promiseSeries_1 = require("../promiseSeries");
-const dummyTask_1 = require("../dummyTask");
+const __1 = require("../");
 it('should run mixed task types using an array', () => __awaiter(void 0, void 0, void 0, function* () {
-    const results = yield (0, promiseSeries_1.promiseSeries)({
+    const results = yield (0, __1.promiseSeries)({
         tasks: [
-            () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
+            () => (0, __1.dummyTask)({ delay: 100 }),
+            () => (0, __1.dummyTask)({ delay: 100 }),
+            () => (0, __1.dummyTask)({ delay: 100 }),
             () => {
                 const result = 'non-async task success';
                 console.log(result);

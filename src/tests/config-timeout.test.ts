@@ -1,5 +1,4 @@
-import { promiseSeries } from '../promiseSeries';
-import { dummyTask } from '../dummyTask';
+import { promiseSeries, dummyTask } from '../';
 
 it('should run array series with a timeout', async () => {
   const results = await promiseSeries({
@@ -27,6 +26,6 @@ it('should fail array series with a timeout', async () => {
       ],
     });
   } catch (error) {
-    expect(error).toStrictEqual("Timed out");
+    expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"task-2\",\"error\":\"Task timed out\"}");
   }
 });

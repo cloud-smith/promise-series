@@ -9,30 +9,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const promiseSeries_1 = require("../promiseSeries");
-const dummyTask_1 = require("../dummyTask");
+const __1 = require("../");
 it('should run named array series', () => __awaiter(void 0, void 0, void 0, function* () {
-    const results = yield (0, promiseSeries_1.promiseSeries)({
+    const results = yield (0, __1.promiseSeries)({
         tasks: {
-            getApples: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            getOrganges: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-            getGrapes: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
+            getApples: () => (0, __1.dummyTask)({ delay: 100 }),
+            getOrganges: () => (0, __1.dummyTask)({ delay: 100 }),
+            getGrapes: () => (0, __1.dummyTask)({ delay: 100 }),
         },
     });
-    expect(JSON.stringify(results)).toStrictEqual(`[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}]`);
+    expect(JSON.stringify(results)).toStrictEqual("[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]");
 }));
 it('should fail named series', () => __awaiter(void 0, void 0, void 0, function* () {
     expect.assertions(1);
     try {
-        yield (0, promiseSeries_1.promiseSeries)({
+        yield (0, __1.promiseSeries)({
             tasks: {
-                getApples: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
-                getOrganges: () => (0, dummyTask_1.dummyTask)({ delay: 100, shouldFail: true }),
-                getGrapes: () => (0, dummyTask_1.dummyTask)({ delay: 100 }),
+                getApples: () => (0, __1.dummyTask)({ delay: 100 }),
+                getOrganges: () => (0, __1.dummyTask)({ delay: 100, shouldFail: true }),
+                getGrapes: () => (0, __1.dummyTask)({ delay: 100 }),
             },
         });
     }
     catch (error) {
-        expect(JSON.stringify(error)).toStrictEqual(`{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task Failed\"}`);
+        expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}");
     }
 }));

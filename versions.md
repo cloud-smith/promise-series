@@ -1,9 +1,13 @@
 @cloud-smith/promise-series
 
+
 TODOS
 - Bug: Unable to setState correctly during a task.
+- Feature: Promises you can ignore (https://esdiscuss.org/topic/cancellation-architectural-observations)
+
 
 1/8/2023
+- 2.0.6-RC1 Fixes breaking rollbacks
 - 2.0.5 Fixes rollbacks
 - 2.0.4 Updates onTaskError should display error as string
 - 2.0.3 Fixes logging not working by default

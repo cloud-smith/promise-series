@@ -17,6 +17,7 @@ class PromiseSeries {
         this.defaults = {
             useLogging: true,
             timeout: 30000,
+            faultTolerantRollbacks: true,
         };
         this.state = {
             data: {
@@ -114,8 +115,9 @@ class PromiseSeries {
             },
             onRollbackError: task => {
                 const { taskLabel } = this.state.get().current;
+                const error = new Error(task.error);
                 this.log(`${taskLabel} failed`);
-                this.log(task.error);
+                this.log(error.message);
                 this.state.data.rollbacks[task.number - 1] = task;
                 this.state.data.errors.rollbacks.push(task);
                 if (this.hooks.onRollbackError)
@@ -303,36 +305,34 @@ class PromiseSeries {
             let taskName = '';
             let wrapper = null;
             const onTaskSuccess = (results) => {
+                removeTimeout();
                 if (wrapper)
                     this.events.onTaskComplete(Object.assign(Object.assign({}, wrapper), { results }));
             };
-            const onTaskError = (error) => {
+            const onTaskError = (error) => __awaiter(this, void 0, void 0, function* () {
                 const shouldRollback = state.rollbacks.length ? true : false;
                 removeTimeout();
                 if (wrapper)
                     this.events.onTaskError(Object.assign(Object.assign({}, wrapper), { error }));
                 if (shouldRollback) {
-                    onRollback();
+                    yield this.rollback()
+                        .then(resolve)
+                        .catch(reject);
                 }
                 else {
                     this.events.onFinish(this.utils.getHookProps());
                     reject(this.utils.getErrorReport());
                 }
-            };
-            const onRollback = () => __awaiter(this, void 0, void 0, function* () {
-                return yield this.rollback()
-                    .then(resolve)
-                    .catch(reject);
             });
             const createTimeout = () => {
                 if (timeout)
-                    this.timers.createTimeout(taskName, timeout, () => {
+                    this.timers.createTimeout(`task-${taskName}`, timeout, () => {
                         onTaskError('Task timed out');
                     });
             };
             const removeTimeout = () => {
                 if (timeout)
-                    this.timers.clearTimeout(taskName);
+                    this.timers.clearTimeout(`task-${taskName}`);
             };
             this.events.onStart(state);
             for (taskIndex; taskIndex < tasks.length; taskIndex++) {
@@ -348,8 +348,7 @@ class PromiseSeries {
                 createTimeout();
                 yield wrapper.action(this.utils.getHookProps())
                     .then(onTaskSuccess)
-                    .catch(onTaskError)
-                    .finally(removeTimeout);
+                    .catch(onTaskError);
             }
             this.events.onFinish(this.utils.getHookProps());
             resolve(this.state.get().tasks);
@@ -365,6 +364,7 @@ class PromiseSeries {
             let taskName = '';
             let wrapper = null;
             const onTaskSuccess = (results) => {
+                removeTimeout();
                 if (wrapper)
                     this.events.onRollbackComplete(Object.assign(Object.assign({}, wrapper), { results }));
             };
@@ -372,21 +372,20 @@ class PromiseSeries {
                 removeTimeout();
                 if (wrapper)
                     this.events.onRollbackError(Object.assign(Object.assign({}, wrapper), { error }));
-                reject(Object.assign(Object.assign({}, wrapper), { error }));
             };
             const createTimeout = () => {
                 if (timeout)
-                    this.timers.createTimeout(taskName, timeout, () => {
+                    this.timers.createTimeout(`rollback-${taskName}`, timeout, () => {
                         throw new Error('Rollback timed out');
                     });
             };
             const removeTimeout = () => {
                 if (timeout)
-                    this.timers.clearTimeout(taskName);
+                    this.timers.clearTimeout(`rollback-${taskName}`);
             };
             for (taskIndex; taskIndex >= 0; taskIndex--) {
                 state = getState();
-                if (!state.isRunning || state.errors.rollbacks.length)
+                if (!state.isRunning || (!config.faultTolerantRollbacks && state.errors.rollbacks.length))
                     return;
                 wrapper = rollbacks[taskIndex];
                 taskName = wrapper.name;
@@ -397,8 +396,7 @@ class PromiseSeries {
                 createTimeout();
                 yield wrapper.action(this.utils.getHookProps())
                     .then(onTaskSuccess)
-                    .catch(onTaskError)
-                    .finally(removeTimeout);
+                    .catch(onTaskError);
             }
             this.events.onFinish(this.utils.getHookProps());
             reject(this.utils.getErrorReport());

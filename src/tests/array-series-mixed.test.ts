@@ -2,6 +2,7 @@ import { promiseSeries, dummyTask } from '../';
 
 it('should run mixed task types using an array', async () => {
   const results = await promiseSeries({
+    useLogging: false,
 		tasks: [
 			() => dummyTask({ delay: 100 }),
 			() => dummyTask({ delay: 100 }),

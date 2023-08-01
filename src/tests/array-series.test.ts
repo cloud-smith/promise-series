@@ -2,6 +2,7 @@ import { promiseSeries, dummyTask } from '../';
 
 it('should run array series', async () => {
   const results = await promiseSeries({
+    useLogging: false,
 		tasks: [
 			() => dummyTask({ delay: 100 }),
 			() => dummyTask({ delay: 100 }),
@@ -17,6 +18,7 @@ it('should test array series error handling', async () => {
   expect.assertions(1);
   try {
     await promiseSeries({
+      useLogging: false,
       tasks: [
         () => dummyTask({ delay: 100 }),
         () => dummyTask({ delay: 100, shouldFail: true }),

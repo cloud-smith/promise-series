@@ -2,9 +2,9 @@
 
 TODOS
 - Bug: Unable to setState correctly during a task.
-- Add: Rollbacks count and names must match tasks during parsing.
 
 1/8/2023
+- 2.0.5 Fixes rollbacks
 - 2.0.4 Updates onTaskError should display error as string
 - 2.0.3 Fixes logging not working by default
 - 2.0.2 Fixes task-name on task object

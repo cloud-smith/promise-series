@@ -14,6 +14,7 @@ it('should return state changes', () => __awaiter(void 0, void 0, void 0, functi
     const states = [];
     let statesWithoutTasks = [];
     yield (0, __1.promiseSeries)({
+        useLogging: false,
         tasks: [
             () => (0, __1.dummyTask)({ delay: 100 }),
         ],
@@ -24,5 +25,5 @@ it('should return state changes', () => __awaiter(void 0, void 0, void 0, functi
         delete (parsed.tasks);
         return parsed;
     });
-    expect(JSON.stringify(statesWithoutTasks)).toStrictEqual("[{\"config\":{\"useLogging\":true,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{\"useLogging\":true,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null}},{\"config\":{\"useLogging\":true,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":false,\"isComplete\":true,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":null,\"rollbacks\":null},\"collection\":\"\",\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]");
+    expect(JSON.stringify(statesWithoutTasks)).toStrictEqual("[{\"config\":{\"useLogging\":false,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{},\"errors\":{\"tasks\":[],\"rollbacks\":[]}},{\"config\":{\"useLogging\":false,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":true,\"isComplete\":false,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":[],\"rollbacks\":[]}},{\"config\":{\"useLogging\":false,\"timeout\":30000,\"faultTolerantRollbacks\":false},\"isRunning\":false,\"isComplete\":true,\"isTasksComplete\":false,\"isRollbacksComplete\":false,\"rollbacks\":[],\"current\":{\"taskLabel\":\"task 1 of 1 \\\"task-1\\\"\",\"task\":{\"number\":1,\"name\":\"task-1\"}},\"errors\":{\"tasks\":[],\"rollbacks\":[]},\"collection\":\"\",\"taskIndex\":0,\"taskName\":\"\",\"taskLabel\":\"\"}]");
 }));

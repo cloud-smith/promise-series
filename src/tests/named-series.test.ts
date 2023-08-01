@@ -2,6 +2,7 @@ import { promiseSeries, dummyTask } from '../';
 
 it('should run named array series', async () => {
   const results = await promiseSeries({
+    useLogging: false,
 		tasks: {
       getApples: () => dummyTask({ delay: 100 }),
       getOrganges: () => dummyTask({ delay: 100 }),
@@ -17,6 +18,7 @@ it('should fail named series', async () => {
   expect.assertions(1);
   try {
     await promiseSeries({
+      useLogging: false,
       tasks: {
         getApples: () => dummyTask({ delay: 100 }),
         getOrganges: () => dummyTask({ delay: 100, shouldFail: true }),

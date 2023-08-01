@@ -27,8 +27,8 @@ export class PromiseSeries {
       rollbacks: [],
       current: {},
       errors: {
-        tasks: null,
-        rollbacks: null,
+        tasks: [],
+        rollbacks: [],
       },
     },
     get: () => this.state.data,
@@ -93,7 +93,7 @@ export class PromiseSeries {
       this.log(`${taskLabel} failed`);
       this.log(error.message);
       this.state.data.tasks[task.number-1] = task;
-      this.state.set({ isRunning: false });
+      this.state.data.errors.tasks.push(task);
       if (this.hooks.onTaskError) this.hooks.onTaskError(task);
     },
     onRollbackStart: state => {
@@ -112,7 +112,7 @@ export class PromiseSeries {
       this.log(`${taskLabel} failed`);
       this.log(task.error);
       this.state.data.rollbacks[task.number-1] = task;
-      this.state.set({ isRunning: false });
+      this.state.data.errors.rollbacks.push(task);
       if (this.hooks.onRollbackError) this.hooks.onRollbackError(task);
     },
     onFinish: () => {
@@ -157,16 +157,16 @@ export class PromiseSeries {
 
       if (format.isArray) {
         (this.props.tasks as Types.SeriesSupportedTasksArray).forEach(task => {
-          if (typeof task === 'object') this.state.push(createTaskWrapper(task), 'tasks');
-          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task)), 'tasks');
+          if (typeof task === 'object') this.state.push(createTaskWrapper('tasks', task), 'tasks');
+          if (typeof task === 'function') this.state.push(createTaskWrapper('tasks', createTaskPromise(task)), 'tasks');
         });
       }
 
       if (format.isNamedArray) {
         Object.keys(this.props.tasks as Types.SeriesSupportedTasksObject).forEach(taskName => {
           const task = (this.props.tasks as Types.SeriesSupportedTasksObject)[taskName];
-          if (typeof task === 'object') this.state.push(createTaskWrapper(task, taskName), 'tasks');
-          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task), taskName), 'tasks');
+          if (typeof task === 'object') this.state.push(createTaskWrapper('tasks', task, taskName), 'tasks');
+          if (typeof task === 'function') this.state.push(createTaskWrapper('tasks', createTaskPromise(task), taskName), 'tasks');
         });
       }
     },
@@ -175,18 +175,22 @@ export class PromiseSeries {
       const format = getCollectionType(this.props.rollbacks);
 
       if (format.isArray) {
-        (this.props.rollbacks as Types.SeriesSupportedTasksArray).forEach(task => {
-          if (typeof task === 'object') this.state.push(createTaskWrapper(task), 'rollbacks');
-          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task)), 'rollbacks');
+        (this.props.rollbacks as Types.SeriesSupportedTasksArray).forEach(rollback => {
+          if (typeof rollback === 'object') this.state.push(createTaskWrapper('rollbacks', rollback), 'rollbacks');
+          if (typeof rollback === 'function') this.state.push(createTaskWrapper('rollbacks', createTaskPromise(rollback)), 'rollbacks');
         });
       }
 
       if (format.isNamedArray) {
-        Object.keys(this.props.rollbacks as Types.SeriesSupportedTasksObject).forEach(taskName => {
-          const task = (this.props.rollbacks as Types.SeriesSupportedTasksObject)[taskName];
-          if (typeof task === 'object') this.state.push(createTaskWrapper(task), 'rollbacks');
-          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task)), 'rollbacks');
+        Object.keys(this.props.rollbacks as Types.SeriesSupportedTasksObject).forEach(rollbackName => {
+          const rollback = (this.props.rollbacks as Types.SeriesSupportedTasksObject)[rollbackName];
+          if (typeof rollback === 'object') this.state.push(createTaskWrapper('rollbacks', rollback, rollbackName), 'rollbacks');
+          if (typeof rollback === 'function') this.state.push(createTaskWrapper('rollbacks', createTaskPromise(rollback), rollbackName), 'rollbacks');
         });
+      }
+
+      if (this.state.data.tasks.length !== this.state.data.rollbacks.length) {
+        this.log('Warning, task and rollback sizes should match');
       }
     },
   }
@@ -227,9 +231,10 @@ export class PromiseSeries {
             reject(error);
           }
         }),
-    createTaskWrapper: (action, actionName) => {
-      const number = this.state.get().tasks.length + 1;
-      const name = actionName ? actionName : `task-${number}`;
+    createTaskWrapper: (collectionName, action, actionName) => {
+      const number = this.state.get()[collectionName].length + 1;
+      const type = collectionName === 'tasks' ? 'task' : collectionName === 'rollbacks' ? 'rollback' : 'task';
+      const name = actionName ? actionName : `${type}-${number}`;
       return {
         number,
         name,
@@ -249,9 +254,10 @@ export class PromiseSeries {
         error: undefined,
       };
     },
-    createTaskLabel: (taskIndex, taskName) => {
-      const collectionSize = this.state.get().tasks.length;
-      return `task ${taskIndex+1} of ${collectionSize} "${taskName}"`;
+    createTaskLabel: (collectionName, taskIndex, taskName) => {
+      const collectionSize = this.state.get()[collectionName].length;
+      const taskType = collectionName === 'tasks' ? 'task' : collectionName === 'rollbacks' ? 'rollback' : '';
+      return `${taskType} ${taskIndex+1} of ${collectionSize} "${taskName}"`;
     },
     createRollbackLabel: (taskIndex, taskName) => {
       const collectionSize = this.state.get().rollbacks.length;
@@ -262,6 +268,13 @@ export class PromiseSeries {
       findTask: this.utils.findTask,
       findRollback: this.utils.findRollback,
     }),
+    getErrorReport: () => {
+      const { rollbacks, errors } = this.state.get();
+      const isUsingRollbacks = rollbacks.length ? true : false;
+      const report: Types.SeriesStateErrors | Types.SeriesTaskWrapper =
+        isUsingRollbacks ? errors : errors.tasks[0]
+      return report;
+    },
   }
 
   log = (data: any) => {
@@ -291,7 +304,7 @@ export class PromiseSeries {
 
     const onTaskError = (error: any) => {
       const shouldRollback = state.rollbacks.length ? true : false;
-      
+
       removeTimeout();
       
       if (wrapper)
@@ -305,7 +318,7 @@ export class PromiseSeries {
       }
       else {
         this.events.onFinish(this.utils.getHookProps());
-        reject({ ...wrapper, error });
+        reject(this.utils.getErrorReport());
       }
     };
 
@@ -329,11 +342,11 @@ export class PromiseSeries {
 
     for (taskIndex; taskIndex < tasks.length; taskIndex++) {
       state = getState();
-      if (! state.isRunning || state.errors.tasks) return;
+      if (! state.isRunning || state.errors.tasks.length) return;
 
       wrapper = tasks[taskIndex];
       taskName = wrapper.name;
-      taskLabel = this.utils.createTaskLabel(taskIndex, taskName);
+      taskLabel = this.utils.createTaskLabel('tasks', taskIndex, taskName);
 
       state = {
         ...state,
@@ -366,7 +379,7 @@ export class PromiseSeries {
 
     let state = getState();
 
-    let taskIndex = current.task?.number || 0 - 1;
+    let taskIndex = Number(current.task?.number) - 1;
     let taskLabel = '';
     let taskName = '';
     let wrapper: Types.SeriesTaskWrapper | null = null;
@@ -402,11 +415,11 @@ export class PromiseSeries {
 
     for (taskIndex; taskIndex >= 0; taskIndex--) {
       state = getState();
-      if (! state.isRunning || state.errors.rollbacks) return;
+      if (! state.isRunning || state.errors.rollbacks.length) return;
 
       wrapper = rollbacks[taskIndex];
       taskName = wrapper.name;
-      taskLabel = this.utils.createTaskLabel(taskIndex, taskName);
+      taskLabel = this.utils.createTaskLabel('rollbacks', taskIndex, taskName);
 
       state = {
         ...state,
@@ -430,7 +443,7 @@ export class PromiseSeries {
 
     this.events.onFinish(this.utils.getHookProps());
 
-    reject(this.utils.getHookProps());
+    reject(this.utils.getErrorReport());
   })())
 
   promise: Types.SeriesPromise = async () => {

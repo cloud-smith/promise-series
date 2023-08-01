@@ -2,6 +2,7 @@ import { promiseSeries, dummyTask } from '../';
 
 it('should run array series with a timeout', async () => {
   const results = await promiseSeries({
+    useLogging: false,
     timeout: 1000,
 		tasks: [
 			() => dummyTask({ delay: 100 }),
@@ -18,6 +19,7 @@ it('should fail array series with a timeout', async () => {
   expect.assertions(1);
   try {
     await promiseSeries({
+      useLogging: false,
       timeout: 1000,
       tasks: [
         () => dummyTask({ delay: 100 }),

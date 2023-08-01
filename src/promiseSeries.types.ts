@@ -41,10 +41,12 @@ export type SeriesStateData = {
     task?: SeriesTaskWrapper;
     rollback?: SeriesTaskWrapper;
   };
-  errors: {
-    tasks: null | Error;
-    rollbacks: null | Error;
-  };
+  errors: SeriesStateErrors;
+};
+
+export type SeriesStateErrors = {
+  tasks: SeriesTaskWrapper[];
+  rollbacks: SeriesTaskWrapper[];
 };
 
 //
@@ -147,11 +149,12 @@ export interface SeriesUtils extends SeriesStateUtils {
     isNamedArray: boolean;
   };
   createTaskPromise: (task: SeriesTaskFunction) => SeriesTaskPromise;
-  createTaskWrapper: (action: SeriesTaskPromise, taskName?: string) => SeriesTaskWrapper;
+  createTaskWrapper: (collectionName: SeriesCollections, action: SeriesTaskPromise, taskName?: string) => SeriesTaskWrapper;
   createRollbackWrapper: (action: SeriesTaskPromise, taskName?: string) => SeriesTaskWrapper;
-  createTaskLabel: (taskIndex: number, taskName: string) => string;
+  createTaskLabel: (collectionName: SeriesCollections, taskIndex: number, taskName: string) => string;
   createRollbackLabel: (taskIndex: number, taskName: string) => string;
   getHookProps: () => SeriesHookProps;
+  getErrorReport: () => SeriesStateErrors | SeriesTaskWrapper;
 };
 
 export type SeriesStateUtils = {

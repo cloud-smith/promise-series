@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const __1 = require("../");
 it('should run array series with a timeout', () => __awaiter(void 0, void 0, void 0, function* () {
     const results = yield (0, __1.promiseSeries)({
+        useLogging: false,
         timeout: 1000,
         tasks: [
             () => (0, __1.dummyTask)({ delay: 100 }),
@@ -25,6 +26,7 @@ it('should fail array series with a timeout', () => __awaiter(void 0, void 0, vo
     expect.assertions(1);
     try {
         yield (0, __1.promiseSeries)({
+            useLogging: false,
             timeout: 1000,
             tasks: [
                 () => (0, __1.dummyTask)({ delay: 100 }),

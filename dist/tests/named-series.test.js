@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const __1 = require("../");
 it('should run named array series', () => __awaiter(void 0, void 0, void 0, function* () {
     const results = yield (0, __1.promiseSeries)({
+        useLogging: false,
         tasks: {
             getApples: () => (0, __1.dummyTask)({ delay: 100 }),
             getOrganges: () => (0, __1.dummyTask)({ delay: 100 }),
@@ -24,6 +25,7 @@ it('should fail named series', () => __awaiter(void 0, void 0, void 0, function*
     expect.assertions(1);
     try {
         yield (0, __1.promiseSeries)({
+            useLogging: false,
             tasks: {
                 getApples: () => (0, __1.dummyTask)({ delay: 100 }),
                 getOrganges: () => (0, __1.dummyTask)({ delay: 100, shouldFail: true }),

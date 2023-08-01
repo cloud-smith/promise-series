@@ -89,8 +89,9 @@ export class PromiseSeries {
     },
     onTaskError: task => {
       const { taskLabel } = this.state.get().current;
+      const error = new Error(task.error);
       this.log(`${taskLabel} failed`);
-      this.log(task.error);
+      this.log(error.message);
       this.state.data.tasks[task.number-1] = task;
       this.state.set({ isRunning: false });
       if (this.hooks.onTaskError) this.hooks.onTaskError(task);
@@ -132,9 +133,13 @@ export class PromiseSeries {
     parseConfig: props => {
       if (typeof props !== 'object') return;
       this.props = { ...this.props, ...this.defaults, ...props };
-      if (typeof props.useLogging === 'boolean') this.state.data.config.useLogging = props.useLogging;
-      if (typeof props.timeout === 'number') this.state.data.config.timeout = props.timeout;
-      if (typeof props.faultTolerantRollbacks === 'boolean') this.state.data.config.faultTolerantRollbacks = props.faultTolerantRollbacks;
+
+      // configuration
+      this.state.data.config.useLogging = typeof props.useLogging === 'boolean' ? props.useLogging : Boolean(this.defaults.useLogging);
+      this.state.data.config.timeout = typeof props.timeout === 'number' ? props.timeout : Number(this.defaults.timeout);
+      this.state.data.config.faultTolerantRollbacks = typeof props.faultTolerantRollbacks === 'boolean' ? props.faultTolerantRollbacks : Boolean(this.defaults.faultTolerantRollbacks);
+
+      // hooks
       if (typeof props.useLogger === 'function') this.props.useLogger = props.useLogger;
       if (typeof props.onStateChange === 'function') this.hooks.onStateChange = props.onStateChange;
       if (typeof props.onStart === 'function') this.hooks.onStart = props.onStart;
@@ -160,8 +165,8 @@ export class PromiseSeries {
       if (format.isNamedArray) {
         Object.keys(this.props.tasks as Types.SeriesSupportedTasksObject).forEach(taskName => {
           const task = (this.props.tasks as Types.SeriesSupportedTasksObject)[taskName];
-          if (typeof task === 'object') this.state.push(createTaskWrapper(task), 'tasks');
-          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task)), 'tasks');
+          if (typeof task === 'object') this.state.push(createTaskWrapper(task, taskName), 'tasks');
+          if (typeof task === 'function') this.state.push(createTaskWrapper(createTaskPromise(task), taskName), 'tasks');
         });
       }
     },

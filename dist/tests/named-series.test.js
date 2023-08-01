@@ -18,7 +18,7 @@ it('should run named array series', () => __awaiter(void 0, void 0, void 0, func
             getGrapes: () => (0, __1.dummyTask)({ delay: 100 }),
         },
     });
-    expect(JSON.stringify(results)).toStrictEqual("[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]");
+    expect(JSON.stringify(results)).toStrictEqual("[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}]");
 }));
 it('should fail named series', () => __awaiter(void 0, void 0, void 0, function* () {
     expect.assertions(1);
@@ -32,6 +32,6 @@ it('should fail named series', () => __awaiter(void 0, void 0, void 0, function*
         });
     }
     catch (error) {
-        expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}");
+        expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task simulated failure\"}");
     }
 }));

@@ -3,9 +3,11 @@
 TODOS
 - Bug: Unable to setState correctly during a task.
 - Add: Rollbacks count and names must match tasks during parsing.
-- Update: Refactor promiseSeries into a class.
 
 1/8/2023
+- 2.0.4 Updates onTaskError should display error as string
+- 2.0.3 Fixes logging not working by default
+- 2.0.2 Fixes task-name on task object
 - 2.0.1 Fixes type on passing task state to tasks
 
 31/7/2023

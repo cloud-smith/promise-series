@@ -1,6 +1,6 @@
 {
   "name": "@cloud-smith/promise-series",
-  "version": "2.0.1",
+  "version": "2.0.3-RC1",
   "description": "Javascript promise-series function",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

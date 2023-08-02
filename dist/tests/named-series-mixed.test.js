@@ -24,5 +24,5 @@ it('should run mixed task types using a named array', () => __awaiter(void 0, vo
             }
         },
     });
-    expect(JSON.stringify(results)).toStrictEqual("[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"getNoneAsync\",\"results\":\"non-async task success\"}]");
+    expect(JSON.stringify(results)).toStrictEqual("{\"isTasksSuccessful\":true,\"isRollbacksSuccessful\":false,\"errors\":{\"tasks\":[],\"rollbacks\":[]},\"tasks\":[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"},{\"number\":4,\"name\":\"getNoneAsync\",\"results\":\"non-async task success\"}],\"rollbacks\":[]}");
 }));

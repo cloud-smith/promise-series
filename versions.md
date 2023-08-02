@@ -1,11 +1,14 @@
 @cloud-smith/promise-series
 
 TODOS
-- Bug: findTask/findRollback type return
 - Bug: Unable to React setState correctly during a task
 - Feature: Add forceParallelRollbacks using a promise all
 
 2/8/2023
+- 2.1.0
+  - Updates returnables for resolver to a standard patten
+  - Fixes findTask/findRollback type return
+  - TODO - Fixes warning message about task and rollback sizes should match
 - 2.0.8
   - Adds config "forceRollbacks" flag
   - Updates config "faultTolerantRollbacks" to "forceParallelRollbacks" (feature comming soon)

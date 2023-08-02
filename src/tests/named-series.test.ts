@@ -10,7 +10,7 @@ it('should run named array series', async () => {
     },
 	});
 	expect(JSON.stringify(results)).toStrictEqual(
-    "[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}]"
+    "{\"isTasksSuccessful\":true,\"isRollbacksSuccessful\":false,\"errors\":{\"tasks\":[],\"rollbacks\":[]},\"tasks\":[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"getGrapes\",\"results\":\"Task Success\"}],\"rollbacks\":[]}"
   );
 });
 
@@ -27,7 +27,7 @@ it('should fail named series', async () => {
     });
   } catch (error) {
     expect(JSON.stringify(error)).toStrictEqual(
-      "{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task simulated failure\"}"
+      "{\"isTasksSuccessful\":false,\"isRollbacksSuccessful\":false,\"errors\":{\"tasks\":[{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task simulated failure\"}],\"rollbacks\":[]},\"tasks\":[{\"number\":1,\"name\":\"getApples\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"getOrganges\",\"error\":\"Task simulated failure\"},{\"number\":3,\"name\":\"getGrapes\"}],\"rollbacks\":[]}"
     );
   }
 });

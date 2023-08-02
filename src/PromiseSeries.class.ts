@@ -6,24 +6,17 @@ export class PromiseSeries {
   props: Types.SeriesProps = {}
   hooks: Types.SeriesHooks = {}
 
-  defaults: Types.SeriesConfig = {
-    useLogging: true,
-    timeout: 30000,
-  }
-
-  constructor (props: Types.SeriesProps) {
-    this.parsers.parseConfig(props);
-    this.parsers.parseTasks();
-    this.parsers.parseRollbacks();
-  }
-
-  state: Types.SeriesState = {
-    data: {
+  defaults: Types.SeriesDefaults = {
+    config: {
+      useLogging: true,
+      timeout: 30000,
+    },
+    state: {
       config: {},
       isRunning: false,
       isComplete: false,
-      isTasksComplete: false,
-      isRollbacksComplete: false,
+      isTasksSuccessful: false,
+      isRollbacksSuccessful: false,
       tasks: [],
       rollbacks: [],
       current: {},
@@ -32,13 +25,23 @@ export class PromiseSeries {
         rollbacks: [],
       },
     },
+  };
+
+  constructor (props: Types.SeriesProps) {
+    this.parsers.parseConfig(props);
+    this.parsers.parseTasks();
+    this.parsers.parseRollbacks();
+  }
+
+  state: Types.SeriesState = {
+    data: this.defaults.state,
     get: () => this.state.data,
     set: update => {
       this.state.data = {
         ...this.state.data,
         ...update,
       };
-      this.events.onStateChange(this.state.get());
+      this.events.onStateChange();
     },
     push: (task, collection) => this.state.data[collection].push(task),
   }
@@ -62,7 +65,11 @@ export class PromiseSeries {
 
   events: Types.SeriesEvents = {
     onStateChange: () => {
-      if (this.hooks.onStateChange) this.hooks.onStateChange(this.utils.getHookProps());
+      if (this.hooks.onStateChange) {
+        this.hooks.onStateChange(
+          this.utils.createStateReport()
+        );
+      }
     },
     onStart: state => {
       this.log('starting series tasks');
@@ -74,19 +81,19 @@ export class PromiseSeries {
           isComplete: false,
           isRunning: true,
         });
-        if (this.hooks.onStart) this.hooks.onStart(this.utils.getHookProps());
+        if (this.hooks.onStart) this.hooks.onStart(this.utils.createStateReport());
       }
     },
     onTaskStart: state => {
       this.log(`${state.current.taskLabel} starting`);
-      if (this.hooks.onTaskStart) this.hooks.onTaskStart(this.utils.getHookProps());
+      if (this.hooks.onTaskStart) this.hooks.onTaskStart(this.utils.createStateReport());
     },
     onTaskComplete: task => {
       const { taskLabel } = this.state.get().current;
       if (! taskLabel) return; // TODO - handle destoring tasks
       this.log(`${taskLabel} complete`);
       this.state.data.tasks[task.number-1] = task;
-      if (this.hooks.onTaskComplete) this.hooks.onTaskComplete(task);
+      if (this.hooks.onTaskComplete) this.hooks.onTaskComplete(this.utils.createStateReport());
     },
     onTaskError: task => {
       const { taskLabel } = this.state.get().current;
@@ -95,18 +102,18 @@ export class PromiseSeries {
       this.log(error.message);
       this.state.data.tasks[task.number-1] = task;
       this.state.data.errors.tasks.push(task);
-      if (this.hooks.onTaskError) this.hooks.onTaskError(task);
+      if (this.hooks.onTaskError) this.hooks.onTaskError(this.utils.createStateReport());
     },
     onRollbackStart: state => {
       this.log(`${state.current.taskLabel} starting`);
-      if (this.hooks.onRollbackStart) this.hooks.onRollbackStart(this.utils.getHookProps());
+      if (this.hooks.onRollbackStart) this.hooks.onRollbackStart(this.utils.createStateReport());
     },
     onRollbackComplete: task => {
       const { taskLabel } = this.state.get().current;
-      if (! taskLabel) return; // TODO - handle destoring tasks
+      if (! taskLabel) return;
       this.log(`${taskLabel} complete`);
       this.state.data.rollbacks[task.number-1] = task;
-      if (this.hooks.onRollbackComplete) this.hooks.onRollbackComplete(this.utils.getHookProps());
+      if (this.hooks.onRollbackComplete) this.hooks.onRollbackComplete(this.utils.createStateReport());
     },
     onRollbackError: task => {
       const { taskLabel } = this.state.get().current;
@@ -115,19 +122,31 @@ export class PromiseSeries {
       this.log(error.message);
       this.state.data.rollbacks[task.number-1] = task;
       this.state.data.errors.rollbacks.push(task);
-      if (this.hooks.onRollbackError) this.hooks.onRollbackError(task);
+      if (this.hooks.onRollbackError) this.hooks.onRollbackError(this.utils.createStateReport());
     },
     onFinish: () => {
-      this.log(`finished series tasks`);
-      this.state.set({
-        collection: '',
-        isComplete: true,
-        isRunning: false,
-        taskIndex: 0,
-        taskName: '',
-        taskLabel: '',
+      const { get: getState, set: setState } = this.state;
+      const state = getState();
+
+      const hasTasks = state.tasks.length ? true : false;
+      const hasRollbacks = state.rollbacks.length ? true : false;
+      const hasTaskErrors = state.errors.tasks.length ? true : false;
+      const hasRollbackErrors = state.errors.rollbacks.length ? true : false;
+      const forceRollbacks = state.config.forceRollbacks;
+
+      const isTasksSuccessful = hasTasks && !hasTaskErrors ? true : false;
+      const isRollbacksSuccessful = (!isTasksSuccessful || forceRollbacks) && hasRollbacks && !hasRollbackErrors ? true : false;
+
+      this.log(`finished series`);
+
+      setState({
+        isTasksSuccessful,
+        isRollbacksSuccessful,
       });
-      if (this.hooks.onFinish) this.hooks.onFinish(this.utils.getHookProps());
+
+      if (this.hooks.onFinish) {
+        this.hooks.onFinish({...this.utils.createReport()});
+      }
     },
   }
 
@@ -137,10 +156,10 @@ export class PromiseSeries {
       this.props = { ...this.props, ...this.defaults, ...props };
 
       // configuration
-      this.state.data.config.useLogging = typeof props.useLogging === 'boolean' ? props.useLogging : Boolean(this.defaults.useLogging);
-      this.state.data.config.timeout = typeof props.timeout === 'number' ? props.timeout : Number(this.defaults.timeout);
-      this.state.data.config.forceParallelRollbacks = typeof props.forceParallelRollbacks === 'boolean' ? props.forceParallelRollbacks : Boolean(this.defaults.forceParallelRollbacks);
-      this.state.data.config.forceRollbacks = typeof props.forceRollbacks === 'boolean' ? props.forceRollbacks : Boolean(this.defaults.forceRollbacks);
+      this.state.data.config.useLogging = typeof props.useLogging === 'boolean' ? props.useLogging : Boolean(this.defaults.config.useLogging);
+      this.state.data.config.timeout = typeof props.timeout === 'number' ? props.timeout : Number(this.defaults.config.timeout);
+      this.state.data.config.forceParallelRollbacks = typeof props.forceParallelRollbacks === 'boolean' ? props.forceParallelRollbacks : Boolean(this.defaults.config.forceParallelRollbacks);
+      this.state.data.config.forceRollbacks = typeof props.forceRollbacks === 'boolean' ? props.forceRollbacks : Boolean(this.defaults.config.forceRollbacks);
 
       // hooks
       if (typeof props.useLogger === 'function') this.props.useLogger = props.useLogger;
@@ -192,7 +211,9 @@ export class PromiseSeries {
         });
       }
 
-      if (this.state.data.tasks.length !== this.state.data.rollbacks.length) {
+      if (
+        (this.state.data.tasks.length && this.state.data.rollbacks.length) &&
+        this.state.data.tasks.length !== this.state.data.rollbacks.length) {
         this.log('Warning, task and rollback sizes should match');
       }
     },
@@ -200,15 +221,15 @@ export class PromiseSeries {
 
   utils: Types.SeriesUtils = {
     findTask: key => {
-      let wrapper = {};
-      if (typeof key === 'number') wrapper = this.state.get().tasks.find(task => task.number === key) || {};
-      if (typeof key === 'string') wrapper = this.state.get().tasks.find(task => task.name === key) || {};
+      let wrapper = undefined;
+      if (typeof key === 'number') wrapper = this.state.get().tasks.find(task => task.number === key) || undefined;
+      if (typeof key === 'string') wrapper = this.state.get().tasks.find(task => task.name === key) || undefined;
       return wrapper;
     },
     findRollback: key => {
-      let wrapper = {};
-      if (typeof key === 'number') wrapper = this.state.get().rollbacks.find(task => task.number === key) || {};
-      if (typeof key === 'string') wrapper = this.state.get().rollbacks.find(task => task.name === key) || {};
+      let wrapper = undefined;
+      if (typeof key === 'number') wrapper = this.state.get().rollbacks.find(task => task.number === key) || undefined;
+      if (typeof key === 'string') wrapper = this.state.get().rollbacks.find(task => task.name === key) || undefined;
       return wrapper;
     },
     getCollectionType: collection => {
@@ -262,17 +283,27 @@ export class PromiseSeries {
       const collectionSize = this.state.get().rollbacks.length;
       return `rollback ${taskIndex+1} of ${collectionSize} "${taskName}"`;
     },
-    getHookProps: () => ({
-      ...this.state.get(),
-      findTask: this.utils.findTask,
-      findRollback: this.utils.findRollback,
-    }),
-    getErrorReport: () => {
-      const { rollbacks, errors } = this.state.get();
-      const isUsingRollbacks = rollbacks.length ? true : false;
-      const report: Types.SeriesStateErrors | Types.SeriesTaskWrapper =
-        isUsingRollbacks ? errors : errors.tasks[0]
-      return report;
+    createReport: () => {
+      const state = this.state.get();
+      const utils = this.utils;
+      return {
+        isTasksSuccessful: state.isTasksSuccessful,
+        isRollbacksSuccessful: state.isRollbacksSuccessful,
+        errors: state.errors,
+        tasks: state.tasks,
+        rollbacks: state.rollbacks,
+        findTask: utils.findTask,
+        findRollback: utils.findRollback,
+      };
+    },
+    createStateReport: () => {
+      const { config, current } = this.state.get();
+      const report = this.utils.createReport();
+      return {
+        ...report,
+        config,
+        current,
+      };
     },
   }
 
@@ -281,7 +312,7 @@ export class PromiseSeries {
     console.log(data);
   }
 
-  run = () => new Promise<Types.SeriesTaskWrapper[]>((resolve, reject) => (async () => {
+  run = () => new Promise<Types.SeriesReport>((resolve, reject) => (async () => {
     const { get: getState, set: setState } = this.state;
     const { config, tasks } = getState();
     const timeout = config.timeout || 0;
@@ -318,8 +349,8 @@ export class PromiseSeries {
           .catch(reject);
       }
       else {
-        this.events.onFinish(this.utils.getHookProps());
-        reject(this.utils.getErrorReport());
+        this.events.onFinish(getState());
+        reject(this.utils.createReport());
       }
     };
 
@@ -358,8 +389,8 @@ export class PromiseSeries {
 
       createTimeout();
 
-      await wrapper.action(this.utils.getHookProps())
-        // .until(timeout)
+      await wrapper.action(this.utils.createStateReport())
+        .until(timeout)
         .then(onTaskSuccess)
         .catch(onTaskError);
     }
@@ -369,12 +400,12 @@ export class PromiseSeries {
         .then(resolve)
         .catch(reject);
     } else {
-      this.events.onFinish(this.utils.getHookProps());
-      resolve(this.state.get().tasks);
+      this.events.onFinish(getState());
+      resolve(this.utils.createReport());
     }
   })())
 
-  rollback = () => new Promise<Types.SeriesTaskWrapper[]>((resolve, reject) => (async () => {
+  rollback = () => new Promise<Types.SeriesReport>((resolve, reject) => (async () => {
     const { get: getState, set: setState } = this.state;
     const { config, rollbacks, current } = getState();
     const timeout = config.timeout || 0;
@@ -415,7 +446,6 @@ export class PromiseSeries {
       if (timeout) this.timers.clearTimeout(`rollback-${taskName}`);
     };
 
-    this.log('here');
     for (taskIndex; taskIndex >= 0; taskIndex--) {
       state = getState();
       if (! state.isRunning || (state.errors.rollbacks.length && !config.forceParallelRollbacks)) return;
@@ -438,22 +468,19 @@ export class PromiseSeries {
 
       createTimeout();
 
-      await wrapper.action(this.utils.getHookProps())
-        // .until(timeout)
+      await wrapper.action(this.utils.createStateReport())
+        .until(timeout)
         .then(onTaskSuccess)
         .catch(onTaskError);
     }
 
-    this.events.onFinish(this.utils.getHookProps());
     state = getState();
+    this.events.onFinish(state);
 
     if (config.forceRollbacks) {
-      resolve([
-        ...state.tasks,
-        ...state.rollbacks,
-      ]);
+      resolve(this.utils.createReport());
     } else {
-      reject(this.utils.getErrorReport());
+      reject(this.utils.createReport());
     }
   })())
 

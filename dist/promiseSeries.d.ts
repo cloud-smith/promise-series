@@ -1,2 +1,2 @@
 import { SeriesProps } from './';
-export declare const promiseSeries: (props: SeriesProps) => Promise<import("./promiseSeries.types").SeriesTaskWrapper[]>;
+export declare const promiseSeries: (props: SeriesProps) => Promise<import("./promiseSeries.types").SeriesReport>;

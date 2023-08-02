@@ -10,7 +10,7 @@ it('should run array series', async () => {
 		],
 	});
 	expect(JSON.stringify(results)).toStrictEqual(
-    "[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}]"
+    "{\"isTasksSuccessful\":true,\"isRollbacksSuccessful\":false,\"errors\":{\"tasks\":[],\"rollbacks\":[]},\"tasks\":[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"results\":\"Task Success\"},{\"number\":3,\"name\":\"task-3\",\"results\":\"Task Success\"}],\"rollbacks\":[]}"
   );
 });
 
@@ -26,6 +26,8 @@ it('should test array series error handling', async () => {
       ],
     });
   } catch (error) {
-    expect(JSON.stringify(error)).toStrictEqual("{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}");
+    expect(JSON.stringify(error)).toStrictEqual(
+      "{\"isTasksSuccessful\":false,\"isRollbacksSuccessful\":false,\"errors\":{\"tasks\":[{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"}],\"rollbacks\":[]},\"tasks\":[{\"number\":1,\"name\":\"task-1\",\"results\":\"Task Success\"},{\"number\":2,\"name\":\"task-2\",\"error\":\"Task simulated failure\"},{\"number\":3,\"name\":\"task-3\"}],\"rollbacks\":[]}"
+    );
   }
 });

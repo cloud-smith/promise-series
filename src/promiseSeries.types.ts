@@ -9,6 +9,11 @@ export interface SeriesProps extends SeriesConfig {
   rollbacks?: SeriesSupportedTasks;
 };
 
+export type SeriesDefaults = {
+  config: SeriesConfig;
+  state: SeriesStateData;
+};
+
 //
 // Config
 //
@@ -27,7 +32,7 @@ export interface SeriesConfig extends SeriesHooks {
 export type SeriesState = {
   data: SeriesStateData;
   get: () => SeriesStateData;
-  set: (update: Record<string, any>) => void;
+  set: (update: Partial<SeriesStateData>) => void;
   push: (task: SeriesTaskWrapper, collection: SeriesCollections) => void;
 };
 
@@ -35,15 +40,23 @@ export type SeriesStateData = {
   config: SeriesConfig;
   isRunning: boolean;
   isComplete: boolean;
-  isTasksComplete: boolean;
-  isRollbacksComplete: boolean;
+  isTasksSuccessful: boolean;
+  isRollbacksSuccessful: boolean;
   tasks: SeriesTaskWrapper[];
   rollbacks: SeriesTaskWrapper[];
-  current: {
-    taskLabel?: string;
-    task?: SeriesTaskWrapper;
-    rollback?: SeriesTaskWrapper;
-  };
+  current: SeriesCurrent;
+  errors: SeriesStateErrors;
+};
+
+export type SeriesStateUpdate = {
+  config: SeriesConfig;
+  isRunning: boolean;
+  isComplete: boolean;
+  isTasksSuccessful: boolean;
+  isRollbacksSuccessful: boolean;
+  tasks: SeriesTaskWrapper[];
+  rollbacks: SeriesTaskWrapper[];
+  current: SeriesCurrent;
   errors: SeriesStateErrors;
 };
 
@@ -52,32 +65,35 @@ export type SeriesStateErrors = {
   rollbacks: SeriesTaskWrapper[];
 };
 
+export type SeriesCurrent = {
+  taskLabel?: string;
+  task?: SeriesTaskWrapper;
+  rollback?: SeriesTaskWrapper;
+};
+
 //
 // Hooks
 //
 
 export type SeriesHooks = {
   useLogger?: (data: any) => void;
-  onStateChange?: (state: SeriesHookProps) => void;
-  onStart?: (state: SeriesHookProps) => void;
-  onTaskStart?: (state: SeriesHookProps) => void;
-  onTaskComplete?: (task: SeriesTaskWrapper) => void;
-  onTaskError?: (task: SeriesTaskWrapper) => void;
-  onRollbackStart?: (state: SeriesHookProps) => void;
-  onRollbackComplete?: (task: SeriesHookProps) => void;
-  onRollbackError?: (task: SeriesTaskWrapper) => void;
-  onFinish?: (state: SeriesHookProps) => void;
+  onStateChange?: (state: SeriesStateReport) => void;
+  onStart?: (state: SeriesStateReport) => void;
+  onTaskStart?: (state: SeriesStateReport) => void;
+  onTaskComplete?: (task: SeriesStateReport) => void;
+  onTaskError?: (task: SeriesStateReport) => void;
+  onRollbackStart?: (state: SeriesStateReport) => void;
+  onRollbackComplete?: (task: SeriesStateReport) => void;
+  onRollbackError?: (task: SeriesStateReport) => void;
+  onFinish?: (state: SeriesReport) => void;
 };
-
-export interface SeriesHookProps extends SeriesStateData, SeriesStateUtils {};
-
 
 //
 // Events
 //
 
 export type SeriesEvents = {
-  onStateChange: (state: SeriesStateData) => void;
+  onStateChange: () => void;
   onStart: (state: SeriesStateData) => void;
   onTaskStart: (state: SeriesStateData) => void;
   onTaskComplete: (task: SeriesTaskWrapper) => void;
@@ -91,7 +107,6 @@ export type SeriesEvents = {
 //
 // Tasks
 //
-
 
 export type SeriesTaskWrapper = {
   number: number;
@@ -126,9 +141,9 @@ export type SeriesSupportedTasksArray = SeriesTaskPromise[] | SeriesTaskFunction
 
 export type SeriesSupportedTasksObject = Record<string, SeriesTaskPromise | SeriesTaskFunction>;
 
-export type SeriesTaskFunction = (state: SeriesHookProps) => unknown;
+export type SeriesTaskFunction = (state: SeriesStateReport) => unknown;
 
-export type SeriesTaskPromise = (state: SeriesHookProps) => PromiseProto;
+export type SeriesTaskPromise = (state: SeriesStateReport) => PromiseProto;
 
 export type SeriesRecord = Record<string, any>;
 
@@ -156,13 +171,26 @@ export interface SeriesUtils extends SeriesStateUtils {
   createRollbackWrapper: (action: SeriesTaskPromise, taskName?: string) => SeriesTaskWrapper;
   createTaskLabel: (collectionName: SeriesCollections, taskIndex: number, taskName: string) => string;
   createRollbackLabel: (taskIndex: number, taskName: string) => string;
-  getHookProps: () => SeriesHookProps;
-  getErrorReport: () => SeriesStateErrors | SeriesTaskWrapper;
+  createReport: () => SeriesReport;
+  createStateReport: () => SeriesStateReport;
 };
 
 export type SeriesStateUtils = {
-  findTask: (key: number | string) => SeriesTaskWrapper | object;
-  findRollback: (key: number | string) => SeriesTaskWrapper | object;
+  findTask: (key: number | string) => SeriesTaskWrapper | undefined;
+  findRollback: (key: number | string) => SeriesTaskWrapper | undefined;
+};
+
+export interface SeriesReport extends SeriesStateUtils {
+  isTasksSuccessful: boolean;
+	isRollbacksSuccessful: boolean;
+	errors: SeriesStateErrors;
+	tasks: SeriesTaskWrapper[];
+  rollbacks: SeriesTaskWrapper[];
+};
+
+export interface SeriesStateReport extends SeriesReport {
+  config: SeriesConfig;
+  current: SeriesCurrent;
 };
 
 //
@@ -175,4 +203,4 @@ export type SeriesRunner = () => Promise<SeriesTaskWrapper[]>;
 // Promise
 //
 
-export type SeriesPromise = () => Promise<SeriesTaskWrapper[]>;
+export type SeriesPromise = () => Promise<SeriesReport>;

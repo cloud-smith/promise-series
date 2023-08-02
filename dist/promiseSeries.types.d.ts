@@ -5,7 +5,8 @@ export interface SeriesProps extends SeriesConfig {
 }
 export interface SeriesConfig extends SeriesHooks {
     timeout?: number;
-    faultTolerantRollbacks?: boolean;
+    forceRollbacks?: boolean;
+    forceParallelRollbacks?: boolean;
     useLogging?: boolean;
 }
 export type SeriesState = {

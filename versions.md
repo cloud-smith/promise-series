@@ -1,11 +1,17 @@
 @cloud-smith/promise-series
 
 TODOS
-- Bug: Unable to setState correctly during a task.
-- Feature: Promises you can ignore (https://esdiscuss.org/topic/cancellation-architectural-observations)
+- Bug: findTask/findRollback type return
+- Bug: Unable to React setState correctly during a task
+- Feature: Add forceParallelRollbacks using a promise all
+
+2/8/2023
+- 2.0.8
+  - Adds config "forceRollbacks" flag
+  - Updates config "faultTolerantRollbacks" to "forceParallelRollbacks" (feature comming soon)
+- 2.0.7 Adds @cloud-smith/promise-until
 
 1/8/2023
-- 2.0.7 Adds @cloud-smith/promise-until
 - 2.0.6 Fixes breaking rollbacks
 - 2.0.5 Fixes rollbacks
 - 2.0.4 Updates onTaskError should display error as string

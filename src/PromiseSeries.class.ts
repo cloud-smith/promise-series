@@ -9,7 +9,6 @@ export class PromiseSeries {
   defaults: Types.SeriesConfig = {
     useLogging: true,
     timeout: 30000,
-    faultTolerantRollbacks: true,
   }
 
   constructor (props: Types.SeriesProps) {
@@ -140,7 +139,8 @@ export class PromiseSeries {
       // configuration
       this.state.data.config.useLogging = typeof props.useLogging === 'boolean' ? props.useLogging : Boolean(this.defaults.useLogging);
       this.state.data.config.timeout = typeof props.timeout === 'number' ? props.timeout : Number(this.defaults.timeout);
-      this.state.data.config.faultTolerantRollbacks = typeof props.faultTolerantRollbacks === 'boolean' ? props.faultTolerantRollbacks : Boolean(this.defaults.faultTolerantRollbacks);
+      this.state.data.config.forceParallelRollbacks = typeof props.forceParallelRollbacks === 'boolean' ? props.forceParallelRollbacks : Boolean(this.defaults.forceParallelRollbacks);
+      this.state.data.config.forceRollbacks = typeof props.forceRollbacks === 'boolean' ? props.forceRollbacks : Boolean(this.defaults.forceRollbacks);
 
       // hooks
       if (typeof props.useLogger === 'function') this.props.useLogger = props.useLogger;
@@ -285,6 +285,7 @@ export class PromiseSeries {
     const { get: getState, set: setState } = this.state;
     const { config, tasks } = getState();
     const timeout = config.timeout || 0;
+    const shouldRollback = getState().rollbacks.length ? true : false;
     
     let state = getState();
     
@@ -303,9 +304,8 @@ export class PromiseSeries {
     };
 
     const onTaskError = async (error: any) => {
-      const shouldRollback = state.rollbacks.length ? true : false;
       removeTimeout();
-      
+
       if (wrapper)
         this.events.onTaskError({
           ...wrapper,
@@ -359,13 +359,19 @@ export class PromiseSeries {
       createTimeout();
 
       await wrapper.action(this.utils.getHookProps())
-        .until(timeout)
+        // .until(timeout)
         .then(onTaskSuccess)
         .catch(onTaskError);
     }
 
-    this.events.onFinish(this.utils.getHookProps());
-    resolve(this.state.get().tasks);
+    if (config.forceRollbacks && shouldRollback) {
+      await this.rollback()
+        .then(resolve)
+        .catch(reject);
+    } else {
+      this.events.onFinish(this.utils.getHookProps());
+      resolve(this.state.get().tasks);
+    }
   })())
 
   rollback = () => new Promise<Types.SeriesTaskWrapper[]>((resolve, reject) => (async () => {
@@ -409,9 +415,10 @@ export class PromiseSeries {
       if (timeout) this.timers.clearTimeout(`rollback-${taskName}`);
     };
 
+    this.log('here');
     for (taskIndex; taskIndex >= 0; taskIndex--) {
       state = getState();
-      if (! state.isRunning || (!config.faultTolerantRollbacks && state.errors.rollbacks.length)) return;
+      if (! state.isRunning || (state.errors.rollbacks.length && !config.forceParallelRollbacks)) return;
 
       wrapper = rollbacks[taskIndex];
       taskName = wrapper.name;
@@ -432,13 +439,22 @@ export class PromiseSeries {
       createTimeout();
 
       await wrapper.action(this.utils.getHookProps())
-        .until(timeout)
+        // .until(timeout)
         .then(onTaskSuccess)
         .catch(onTaskError);
     }
 
     this.events.onFinish(this.utils.getHookProps());
-    reject(this.utils.getErrorReport());
+    state = getState();
+
+    if (config.forceRollbacks) {
+      resolve([
+        ...state.tasks,
+        ...state.rollbacks,
+      ]);
+    } else {
+      reject(this.utils.getErrorReport());
+    }
   })())
 
   promise: Types.SeriesPromise = async () => {

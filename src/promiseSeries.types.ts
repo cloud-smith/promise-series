@@ -1,3 +1,5 @@
+import { PromiseProto } from '@cloud-smith/promise-until';
+
 //
 // Props
 //
@@ -125,7 +127,7 @@ export type SeriesSupportedTasksObject = Record<string, SeriesTaskPromise | Seri
 
 export type SeriesTaskFunction = (state: SeriesHookProps) => unknown;
 
-export type SeriesTaskPromise = (state: SeriesHookProps) => Promise<unknown>;
+export type SeriesTaskPromise = (state: SeriesHookProps) => PromiseProto;
 
 export type SeriesRecord = Record<string, any>;
 

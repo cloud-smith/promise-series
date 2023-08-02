@@ -1,6 +1,6 @@
 {
   "name": "@cloud-smith/promise-series",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Javascript promise-series function",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,6 +19,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@cloud-smith/promise-until": "^1.0.0",
     "@testing-library/jest-dom": "^5.16.5"
   },
   "repository": {

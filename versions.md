@@ -5,6 +5,7 @@ TODOS
 - Feature: Promises you can ignore (https://esdiscuss.org/topic/cancellation-architectural-observations)
 
 1/8/2023
+- 2.0.7 Adds @cloud-smith/promise-until
 - 2.0.6 Fixes breaking rollbacks
 - 2.0.5 Fixes rollbacks
 - 2.0.4 Updates onTaskError should display error as string

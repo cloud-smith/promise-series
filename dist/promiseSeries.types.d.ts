@@ -1,3 +1,4 @@
+import { PromiseProto } from '@cloud-smith/promise-until';
 export interface SeriesProps extends SeriesConfig {
     tasks?: SeriesSupportedTasks;
     rollbacks?: SeriesSupportedTasks;
@@ -77,7 +78,7 @@ export type SeriesCollections = 'tasks' | 'rollbacks';
 export type SeriesSupportedTasksArray = SeriesTaskPromise[] | SeriesTaskFunction[];
 export type SeriesSupportedTasksObject = Record<string, SeriesTaskPromise | SeriesTaskFunction>;
 export type SeriesTaskFunction = (state: SeriesHookProps) => unknown;
-export type SeriesTaskPromise = (state: SeriesHookProps) => Promise<unknown>;
+export type SeriesTaskPromise = (state: SeriesHookProps) => PromiseProto;
 export type SeriesRecord = Record<string, any>;
 export type SeriesParsers = {
     parseConfig: (props: SeriesProps) => void;
